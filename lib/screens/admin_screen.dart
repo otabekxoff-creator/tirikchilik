@@ -468,7 +468,7 @@ class _AdminScreenState extends State<AdminScreen>
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<AdLevel>(
-                    value: selectedLevel,
+                    initialValue: selectedLevel,
                     decoration: const InputDecoration(labelText: 'Daraja'),
                     items: AdLevel.values.map((level) {
                       return DropdownMenuItem(

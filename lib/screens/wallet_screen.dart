@@ -38,10 +38,7 @@ class WalletScreen extends StatelessWidget {
                 children: [
                   const Text(
                     'Jami balans',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -83,15 +80,9 @@ class WalletScreen extends StatelessWidget {
               children: [
                 const Text(
                   'Tranzaksiyalar',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text('Barchasi'),
-                ),
+                TextButton(onPressed: () {}, child: const Text('Barchasi')),
               ],
             ),
           ),
@@ -109,9 +100,7 @@ class WalletScreen extends StatelessWidget {
                         const SizedBox(height: 16),
                         Text(
                           'Hali tranzaksiyalar yo\'q',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                          ),
+                          style: TextStyle(color: Colors.grey.shade600),
                         ),
                       ],
                     ),
@@ -151,10 +140,7 @@ class WalletScreen extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-              ),
+              style: const TextStyle(color: Colors.white, fontSize: 12),
             ),
           ],
         ),
@@ -163,7 +149,8 @@ class WalletScreen extends StatelessWidget {
   }
 
   Widget _buildTransactionItem(Transaction tx) {
-    final isPositive = tx.type == TransactionType.earned || tx.type == TransactionType.bonus;
+    final isPositive =
+        tx.type == TransactionType.earned || tx.type == TransactionType.bonus;
     final color = isPositive ? Colors.green : Colors.red;
     final icon = _getTransactionIcon(tx.type);
 
@@ -181,10 +168,7 @@ class WalletScreen extends StatelessWidget {
         title: Text(tx.description),
         subtitle: Text(
           DateFormat('dd.MM.yyyy HH:mm').format(tx.date),
-          style: TextStyle(
-            color: Colors.grey.shade600,
-            fontSize: 12,
-          ),
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
         ),
         trailing: Text(
           '${isPositive ? '+' : '-'}\$${tx.amount.toStringAsFixed(2)}',
@@ -250,15 +234,13 @@ class WalletScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: selectedMethod,
-                decoration: const InputDecoration(
-                  labelText: 'To\'lov turi',
-                ),
+                initialValue: selectedMethod,
+                decoration: const InputDecoration(labelText: 'To\'lov turi'),
                 items: ['Payme', 'Click', 'UzCard', 'Humo']
-                    .map((method) => DropdownMenuItem(
-                          value: method,
-                          child: Text(method),
-                        ))
+                    .map(
+                      (method) =>
+                          DropdownMenuItem(value: method, child: Text(method)),
+                    )
                     .toList(),
                 onChanged: (value) {
                   setState(() => selectedMethod = value!);
@@ -284,9 +266,11 @@ class WalletScreen extends StatelessWidget {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(success
-                        ? 'Pul muvaffaqiyatli yechildi'
-                        : 'Balans yetarli emas'),
+                    content: Text(
+                      success
+                          ? 'Pul muvaffaqiyatli yechildi'
+                          : 'Balans yetarli emas',
+                    ),
                     backgroundColor: success ? Colors.green : Colors.red,
                   ),
                 );

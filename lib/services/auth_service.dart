@@ -115,9 +115,7 @@ class AuthService {
 
     // Find user by email or phone
     UserModel? foundUser = await _db.getUserByEmail(emailOrPhone);
-    if (foundUser == null) {
-      foundUser = await _db.getUserByPhone(emailOrPhone);
-    }
+    foundUser ??= await _db.getUserByPhone(emailOrPhone);
 
     if (foundUser == null) return null;
 
