@@ -305,7 +305,7 @@ class DatabaseService {
       );
       final transactions = transMaps
           .map(
-            (t) => Transaction(
+            (t) => models.Transaction(
               id: t['id'] as int,
               type: t['type'] as String,
               amount: t['amount'] as double,
@@ -316,7 +316,7 @@ class DatabaseService {
           )
           .toList();
 
-      return WalletModel(
+      return models.WalletModel(
         id: map['id'] as int,
         userId: map['userId'] as String,
         balance: map['balance'] as double,
@@ -337,7 +337,10 @@ class DatabaseService {
     );
   }
 
-  Future<void> addTransaction(String userId, Transaction transaction) async {
+  Future<void> addTransaction(
+    String userId,
+    models.Transaction transaction,
+  ) async {
     final db = await database;
     await db.insert('transactions', {
       'userId': userId,
@@ -349,10 +352,10 @@ class DatabaseService {
     });
   }
 
-  Future<List<WalletModel>> getAllWallets() async {
+  Future<List<models.WalletModel>> getAllWallets() async {
     final db = await database;
     final maps = await db.query('wallets');
-    final wallets = <WalletModel>[];
+    final wallets = <models.WalletModel>[];
     for (final map in maps) {
       final wallet = await getWallet(map['userId'] as String);
       if (wallet != null) {
