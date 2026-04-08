@@ -101,7 +101,11 @@ class DatabaseService {
     ''');
   }
 
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+  Future<void> _onUpgrade(
+    sql.Database db,
+    int oldVersion,
+    int newVersion,
+  ) async {
     // Handle database migrations here
     if (oldVersion < newVersion) {
       // Migration logic
@@ -286,7 +290,7 @@ class DatabaseService {
     });
   }
 
-  Future<WalletModel?> getWallet(String userId) async {
+  Future<models.WalletModel?> getWallet(String userId) async {
     final db = await database;
     final maps = await db.query(
       'wallets',
@@ -306,21 +310,23 @@ class DatabaseService {
       final transactions = transMaps
           .map(
             (t) => models.Transaction(
-              id: t['id'] as int,
-              type: t['type'] as String,
-              amount: t['amount'] as double,
-              description: t['description'] as String?,
+              id: t['id'].toString(),
+              type: models.TransactionType.values.firstWhere(
+                (e) => e.toString() == 'TransactionType.${t['type']}',
+                orElse: () => models.TransactionType.earned,
+              ),
+              amount: (t['amount'] as num).toDouble(),
+              description: t['description'] as String? ?? '',
               date: DateTime.parse(t['createdAt'] as String),
-              status: t['status'] as String,
+              adLevel: t['adLevel'] as String?,
             ),
           )
           .toList();
 
       return models.WalletModel(
-        id: map['id'] as int,
         userId: map['userId'] as String,
-        balance: map['balance'] as double,
-        pendingBalance: map['pendingBalance'] as double,
+        balance: (map['balance'] as num).toDouble(),
+        pendingBalance: (map['pendingBalance'] as num).toDouble(),
         transactions: transactions,
       );
     }
@@ -344,10 +350,10 @@ class DatabaseService {
     final db = await database;
     await db.insert('transactions', {
       'userId': userId,
-      'type': transaction.type,
+      'type': transaction.type.toString().split('.').last,
       'amount': transaction.amount,
       'description': transaction.description,
-      'status': transaction.status,
+      'adLevel': transaction.adLevel,
       'createdAt': transaction.date.toIso8601String(),
     });
   }

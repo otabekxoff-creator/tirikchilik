@@ -5,11 +5,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../models/user_model.dart';
 import '../utils/validators.dart';
+import 'database_service.dart';
 
 class AuthService {
-  static const String _usersKey = 'users';
-  static const String _currentUserKey = 'current_user';
-  static const String _saltKey = 'password_salt';
+  final DatabaseService _db = DatabaseService();
 
   UserModel? _currentUser;
   UserModel? get currentUser => _currentUser;
@@ -36,22 +35,6 @@ class AuthService {
     return computedHash == storedHash;
   }
 
-  Future<Map<String, String>> _getOrCreateSalt() async {
-    final prefs = await SharedPreferences.getInstance();
-    final saltsJson = prefs.getString(_saltKey);
-    if (saltsJson != null) {
-      return Map<String, String>.from(jsonDecode(saltsJson));
-    }
-    return {};
-  }
-
-  Future<void> _saveSalt(String userId, String salt) async {
-    final prefs = await SharedPreferences.getInstance();
-    final salts = await _getOrCreateSalt();
-    salts[userId] = salt;
-    await prefs.setString(_saltKey, jsonEncode(salts));
-  }
-
   String _generateReferralCode() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final random = Random();
@@ -65,15 +48,10 @@ class AuthService {
     String password, {
     String? referralCode,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final usersJson = prefs.getString(_usersKey);
-    final users = usersJson != null
-        ? (jsonDecode(usersJson) as List)
-              .map((e) => UserModel.fromJson(e))
-              .toList()
-        : <UserModel>[];
-
-    if (users.any((u) => u.email == email || u.phone == phone)) {
+    // Check if user already exists
+    final existingByEmail = await _db.getUserByEmail(email);
+    final existingByPhone = await _db.getUserByPhone(phone);
+    if (existingByEmail != null || existingByPhone != null) {
       return false;
     }
 
@@ -84,17 +62,8 @@ class AuthService {
     // Check referral code
     String? referredBy;
     if (referralCode != null && referralCode.isNotEmpty) {
-      final referrer = users.firstWhere(
-        (u) => u.referralCode == referralCode,
-        orElse: () => UserModel(
-          id: '',
-          name: '',
-          email: '',
-          phone: '',
-          createdAt: DateTime.now(),
-        ),
-      );
-      if (referrer.id.isNotEmpty) {
+      final referrer = await _db.getUserByReferralCode(referralCode);
+      if (referrer != null) {
         referredBy = referrer.id;
       }
     }
@@ -110,14 +79,16 @@ class AuthService {
       referredBy: referredBy,
     );
 
-    await _saveSalt(userId, salt);
+    // Save to database
+    await _db.insertUser(newUser);
+    await _db.saveSalt(userId, salt);
 
-    users.add(newUser);
-    await prefs.setString(
-      _usersKey,
-      jsonEncode(users.map((e) => e.toJson()).toList()),
-    );
-    await prefs.setString(_currentUserKey, jsonEncode(newUser.toJson()));
+    // Create wallet for user
+    await _db.createWallet(userId);
+
+    // Save current user in SharedPreferences for session
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('current_user_id', userId);
     _currentUser = newUser;
     return true;
   }
@@ -136,33 +107,23 @@ class AuthService {
         createdAt: DateTime.now(),
       );
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_currentUserKey, jsonEncode(adminUser.toJson()));
+      await prefs.setString('current_user_id', 'admin');
+      await prefs.setString('is_admin', 'true');
       _currentUser = adminUser;
       return adminUser;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final usersJson = prefs.getString(_usersKey);
-    if (usersJson == null) return null;
-
-    final users = (jsonDecode(usersJson) as List)
-        .map((e) => UserModel.fromJson(e))
-        .toList();
-
-    UserModel? foundUser;
-    for (var u in users) {
-      if (u.email == emailOrPhone || u.phone == emailOrPhone) {
-        foundUser = u;
-        break;
-      }
+    // Find user by email or phone
+    UserModel? foundUser = await _db.getUserByEmail(emailOrPhone);
+    if (foundUser == null) {
+      foundUser = await _db.getUserByPhone(emailOrPhone);
     }
 
     if (foundUser == null) return null;
 
     // Verify password (if user has passwordHash)
     if (foundUser.passwordHash != null) {
-      final salts = await _getOrCreateSalt();
-      final salt = salts[foundUser.id];
+      final salt = await _db.getSalt(foundUser.id);
       final isPasswordValid = await _verifyPassword(
         password,
         foundUser.passwordHash,
@@ -170,21 +131,24 @@ class AuthService {
       );
       if (!isPasswordValid) return null;
     }
-    // If no passwordHash (old user), allow any password for backward compatibility
 
     // Reset daily ad count if it's a new day
     if (foundUser.isNewDay) {
       foundUser = foundUser.copyWith(dailyAdsWatched: 0, lastAdWatchDate: null);
+      await _db.updateUser(foundUser);
     }
 
-    await prefs.setString(_currentUserKey, jsonEncode(foundUser.toJson()));
+    // Save current user session
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('current_user_id', foundUser.id);
     _currentUser = foundUser;
     return foundUser;
   }
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_currentUserKey);
+    await prefs.remove('current_user_id');
+    await prefs.remove('is_admin');
     _currentUser = null;
   }
 
@@ -192,10 +156,26 @@ class AuthService {
     if (_currentUser != null) return _currentUser;
 
     final prefs = await SharedPreferences.getInstance();
-    final userJson = prefs.getString(_currentUserKey);
-    if (userJson == null) return null;
+    final userId = prefs.getString('current_user_id');
+    if (userId == null) return null;
 
-    final user = UserModel.fromJson(jsonDecode(userJson));
+    // Check if admin
+    final isAdmin = prefs.getString('is_admin') == 'true';
+    if (isAdmin || userId == 'admin') {
+      final adminUser = UserModel(
+        id: 'admin',
+        name: 'Admin',
+        email: 'admin@tirikchilik.uz',
+        phone: 'Admin777',
+        isAdmin: true,
+        createdAt: DateTime.now(),
+      );
+      _currentUser = adminUser;
+      return adminUser;
+    }
+
+    final user = await _db.getUserById(userId);
+    if (user == null) return null;
 
     // Reset daily ad count if it's a new day
     if (user.isNewDay) {
@@ -203,7 +183,7 @@ class AuthService {
         dailyAdsWatched: 0,
         lastAdWatchDate: null,
       );
-      await prefs.setString(_currentUserKey, jsonEncode(updatedUser.toJson()));
+      await _db.updateUser(updatedUser);
       _currentUser = updatedUser;
       return updatedUser;
     }
@@ -213,48 +193,19 @@ class AuthService {
   }
 
   Future<void> updateUser(UserModel user) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_currentUserKey, jsonEncode(user.toJson()));
-
-    if (!user.isAdmin) {
-      final usersJson = prefs.getString(_usersKey);
-      if (usersJson != null) {
-        final users = (jsonDecode(usersJson) as List)
-            .map((e) => UserModel.fromJson(e))
-            .toList();
-        final index = users.indexWhere((u) => u.id == user.id);
-        if (index != -1) {
-          users[index] = user;
-          await prefs.setString(
-            _usersKey,
-            jsonEncode(users.map((e) => e.toJson()).toList()),
-          );
-        }
-      }
-    }
+    await _db.updateUser(user);
     _currentUser = user;
   }
 
   Future<List<UserModel>> getAllUsers() async {
-    final prefs = await SharedPreferences.getInstance();
-    final usersJson = prefs.getString(_usersKey);
-    if (usersJson == null) return [];
-    return (jsonDecode(usersJson) as List)
-        .map((e) => UserModel.fromJson(e))
-        .toList();
+    return await _db.getAllUsers();
   }
 
   Future<UserModel?> getUserByReferralCode(String code) async {
-    final users = await getAllUsers();
-    return users.firstWhere(
-      (u) => u.referralCode == code,
-      orElse: () => UserModel(
-        id: '',
-        name: '',
-        email: '',
-        phone: '',
-        createdAt: DateTime.now(),
-      ),
-    );
+    return await _db.getUserByReferralCode(code);
+  }
+
+  Future<UserModel?> getUserById(String id) async {
+    return await _db.getUserById(id);
   }
 }
