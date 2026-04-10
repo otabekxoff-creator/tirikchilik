@@ -127,7 +127,7 @@ class MyApp extends StatelessWidget {
           borderRadius: BorderRadius.circular(IOSTheme.radius16),
         ),
         color: IOSTheme.systemBackground,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
       // iOS Buttons
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -150,7 +150,7 @@ class MyApp extends StatelessWidget {
       // iOS Background
       scaffoldBackgroundColor: IOSTheme.systemGroupedBackground,
       // iOS Dialog
-      dialogTheme: const DialogThemeData(
+      dialogTheme: DialogThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(IOSTheme.radius20),
         ),
@@ -171,9 +171,7 @@ class MyApp extends StatelessWidget {
         backgroundColor: IOSTheme.systemGray6,
         selectedColor: IOSTheme.systemBlue.withValues(alpha: 0.15),
         labelStyle: IOSTheme.subhead,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(IOSTheme.radiusFull),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
       ),
     );
   }
@@ -231,7 +229,7 @@ class MyApp extends StatelessWidget {
           borderRadius: BorderRadius.circular(IOSTheme.radius16),
         ),
         color: IOSTheme.darkSecondarySystemBackground,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
       // iOS Buttons (Dark)
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -332,9 +330,7 @@ class MyApp extends StatelessWidget {
         backgroundColor: IOSTheme.darkTertiarySystemBackground,
         selectedColor: IOSTheme.systemCyan.withValues(alpha: 0.15),
         labelStyle: IOSTheme.subhead.copyWith(color: IOSTheme.darkLabel),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(IOSTheme.radiusFull),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
       ),
     );
   }

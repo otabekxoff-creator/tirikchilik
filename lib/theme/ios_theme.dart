@@ -15,7 +15,7 @@ class IOSTheme {
   static const Color systemTeal = Color(0xFF5AC8FA);
   static const Color systemYellow = Color(0xFFFFCC00);
   static const Color systemCyan = Color(0xFF64D2FF);
-  
+
   // MARK: - iOS Gray Colors
   static const Color systemGray = Color(0xFF8E8E93);
   static const Color systemGray2 = Color(0xFFAEAEB2);
@@ -23,7 +23,7 @@ class IOSTheme {
   static const Color systemGray4 = Color(0xFFD1D1D6);
   static const Color systemGray5 = Color(0xFFE5E5EA);
   static const Color systemGray6 = Color(0xFFF2F2F7);
-  
+
   // MARK: - Background Colors
   static const Color systemBackground = Color(0xFFFFFFFF);
   static const Color secondarySystemBackground = Color(0xFFF2F2F7);
@@ -31,7 +31,7 @@ class IOSTheme {
   static const Color systemGroupedBackground = Color(0xFFF2F2F7);
   static const Color secondarySystemGroupedBackground = Color(0xFFFFFFFF);
   static const Color tertiarySystemGroupedBackground = Color(0xFFF2F2F7);
-  
+
   // MARK: - Label Colors
   static const Color label = Color(0xFF000000);
   static const Color secondaryLabel = Color(0xFF3C3C43);
@@ -41,7 +41,7 @@ class IOSTheme {
   static const Color link = Color(0xFF007AFF);
   static const Color separator = Color(0xFFC6C6C8);
   static const Color opaqueSeparator = Color(0xFFC6C6C8);
-  
+
   // MARK: - Dark Mode Colors
   static const Color darkSystemBackground = Color(0xFF000000);
   static const Color darkSecondarySystemBackground = Color(0xFF1C1C1E);
@@ -53,8 +53,9 @@ class IOSTheme {
   static const Color darkSecondaryLabel = Color(0xFFEBEBF5);
   static const Color darkTertiaryLabel = Color(0xFFEBEBF5);
   static const Color darkQuaternaryLabel = Color(0xFFEBEBF5);
+  static const Color darkPlaceholderText = Color(0xFF8E8E93);
   static const Color darkSeparator = Color(0xFF38383A);
-  
+
   // MARK: - Gradient Colors for Premium Feel
   static const List<Color> premiumGradient = [
     Color(0xFF007AFF),
@@ -68,12 +69,12 @@ class IOSTheme {
     Color(0xFF34C759),
     Color(0xFF30D158),
   ];
-  
+
   // MARK: - Typography (iOS 17/18 Style)
   static const String fontFamily = '.SF Pro Display';
   static const String fontFamilyRounded = '.SF Pro Rounded';
   static const String fontFamilyText = '.SF Pro Text';
-  
+
   // MARK: - Text Styles
   static const TextStyle largeTitle = TextStyle(
     fontFamily: fontFamily,
@@ -82,7 +83,7 @@ class IOSTheme {
     letterSpacing: -0.4,
     color: label,
   );
-  
+
   static const TextStyle title1 = TextStyle(
     fontFamily: fontFamily,
     fontSize: 28,
@@ -90,7 +91,7 @@ class IOSTheme {
     letterSpacing: -0.4,
     color: label,
   );
-  
+
   static const TextStyle title2 = TextStyle(
     fontFamily: fontFamily,
     fontSize: 22,
@@ -98,7 +99,7 @@ class IOSTheme {
     letterSpacing: -0.4,
     color: label,
   );
-  
+
   static const TextStyle title3 = TextStyle(
     fontFamily: fontFamily,
     fontSize: 20,
@@ -106,7 +107,7 @@ class IOSTheme {
     letterSpacing: -0.4,
     color: label,
   );
-  
+
   static const TextStyle headline = TextStyle(
     fontFamily: fontFamily,
     fontSize: 17,
@@ -114,7 +115,7 @@ class IOSTheme {
     letterSpacing: -0.4,
     color: label,
   );
-  
+
   static const TextStyle body = TextStyle(
     fontFamily: fontFamilyText,
     fontSize: 17,
@@ -122,7 +123,7 @@ class IOSTheme {
     letterSpacing: -0.4,
     color: label,
   );
-  
+
   static const TextStyle callout = TextStyle(
     fontFamily: fontFamilyText,
     fontSize: 16,
@@ -130,7 +131,7 @@ class IOSTheme {
     letterSpacing: -0.4,
     color: label,
   );
-  
+
   static const TextStyle subhead = TextStyle(
     fontFamily: fontFamilyText,
     fontSize: 15,
@@ -138,7 +139,7 @@ class IOSTheme {
     letterSpacing: -0.4,
     color: label,
   );
-  
+
   static const TextStyle footnote = TextStyle(
     fontFamily: fontFamilyText,
     fontSize: 13,
@@ -146,7 +147,7 @@ class IOSTheme {
     letterSpacing: -0.4,
     color: secondaryLabel,
   );
-  
+
   static const TextStyle caption1 = TextStyle(
     fontFamily: fontFamilyText,
     fontSize: 12,
@@ -154,7 +155,7 @@ class IOSTheme {
     letterSpacing: -0.4,
     color: secondaryLabel,
   );
-  
+
   static const TextStyle caption2 = TextStyle(
     fontFamily: fontFamilyText,
     fontSize: 11,
@@ -162,7 +163,7 @@ class IOSTheme {
     letterSpacing: -0.4,
     color: secondaryLabel,
   );
-  
+
   // MARK: - Spacing (iOS Grid)
   static const double spacing4 = 4;
   static const double spacing8 = 8;
@@ -173,7 +174,7 @@ class IOSTheme {
   static const double spacing32 = 32;
   static const double spacing40 = 40;
   static const double spacing48 = 48;
-  
+
   // MARK: - Corner Radius (iOS Style)
   static const double radius8 = 8;
   static const double radius12 = 12;
@@ -181,7 +182,7 @@ class IOSTheme {
   static const double radius20 = 20;
   static const double radius24 = 24;
   static const double radiusFull = 999;
-  
+
   // MARK: - Shadows (iOS Style)
   static List<BoxShadow> get smallShadow => [
     BoxShadow(
@@ -190,7 +191,7 @@ class IOSTheme {
       offset: const Offset(0, 2),
     ),
   ];
-  
+
   static List<BoxShadow> get mediumShadow => [
     BoxShadow(
       color: Colors.black.withValues(alpha: 0.08),
@@ -198,7 +199,7 @@ class IOSTheme {
       offset: const Offset(0, 4),
     ),
   ];
-  
+
   static List<BoxShadow> get largeShadow => [
     BoxShadow(
       color: Colors.black.withValues(alpha: 0.12),
@@ -206,28 +207,22 @@ class IOSTheme {
       offset: const Offset(0, 8),
     ),
   ];
-  
+
   // MARK: - Glassmorphism Effect
   static BoxDecoration get glassmorphism => BoxDecoration(
     color: Colors.white.withValues(alpha: 0.7),
     borderRadius: BorderRadius.circular(radius16),
-    border: Border.all(
-      color: Colors.white.withValues(alpha: 0.3),
-      width: 1,
-    ),
+    border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
     boxShadow: smallShadow,
   );
-  
+
   static BoxDecoration get darkGlassmorphism => BoxDecoration(
     color: Colors.black.withValues(alpha: 0.4),
     borderRadius: BorderRadius.circular(radius16),
-    border: Border.all(
-      color: Colors.white.withValues(alpha: 0.1),
-      width: 1,
-    ),
+    border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
     boxShadow: smallShadow,
   );
-  
+
   // MARK: - iOS Button Styles
   static ButtonStyle get filledButtonStyle => ElevatedButton.styleFrom(
     elevation: 0,
@@ -239,7 +234,7 @@ class IOSTheme {
     ),
     textStyle: headline.copyWith(color: Colors.white),
   );
-  
+
   static ButtonStyle get tonalButtonStyle => ElevatedButton.styleFrom(
     elevation: 0,
     backgroundColor: systemGray6,
@@ -250,7 +245,7 @@ class IOSTheme {
     ),
     textStyle: headline.copyWith(color: systemBlue),
   );
-  
+
   static ButtonStyle get outlinedButtonStyle => OutlinedButton.styleFrom(
     foregroundColor: systemBlue,
     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -260,25 +255,25 @@ class IOSTheme {
     side: const BorderSide(color: systemBlue, width: 1),
     textStyle: headline.copyWith(color: systemBlue),
   );
-  
+
   static ButtonStyle get textButtonStyle => TextButton.styleFrom(
     foregroundColor: systemBlue,
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     textStyle: headline.copyWith(color: systemBlue),
   );
-  
+
   // MARK: - iOS Card Style
   static BoxDecoration get iosCard => BoxDecoration(
     color: systemBackground,
     borderRadius: BorderRadius.circular(radius16),
     boxShadow: smallShadow,
   );
-  
+
   static BoxDecoration get iosGroupedCard => BoxDecoration(
     color: secondarySystemGroupedBackground,
     borderRadius: BorderRadius.circular(radius12),
   );
-  
+
   // MARK: - iOS Input Style
   static InputDecorationTheme get iosInputTheme => InputDecorationTheme(
     filled: true,
@@ -302,7 +297,7 @@ class IOSTheme {
     ),
     hintStyle: body.copyWith(color: placeholderText),
   );
-  
+
   // MARK: - iOS AppBar Style
   static AppBarTheme get iosAppBar => const AppBarTheme(
     centerTitle: true,
@@ -313,19 +308,19 @@ class IOSTheme {
     titleTextStyle: headline,
     toolbarHeight: 44,
   );
-  
+
   // MARK: - iOS NavigationBar Style
-  static BottomNavigationBarThemeData get iosNavBar => 
+  static BottomNavigationBarThemeData get iosNavBar =>
       const BottomNavigationBarThemeData(
-    backgroundColor: systemBackground,
-    selectedItemColor: systemBlue,
-    unselectedItemColor: systemGray,
-    type: BottomNavigationBarType.fixed,
-    elevation: 0,
-    selectedLabelStyle: caption2,
-    unselectedLabelStyle: caption2,
-  );
-  
+        backgroundColor: systemBackground,
+        selectedItemColor: systemBlue,
+        unselectedItemColor: systemGray,
+        type: BottomNavigationBarType.fixed,
+        elevation: 0,
+        selectedLabelStyle: caption2,
+        unselectedLabelStyle: caption2,
+      );
+
   // MARK: - System UI Overlay Style
   static SystemUiOverlayStyle get lightOverlay => const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
@@ -334,7 +329,7 @@ class IOSTheme {
     systemNavigationBarColor: systemBackground,
     systemNavigationBarIconBrightness: Brightness.dark,
   );
-  
+
   static SystemUiOverlayStyle get darkOverlay => const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
@@ -342,12 +337,12 @@ class IOSTheme {
     systemNavigationBarColor: darkSystemBackground,
     systemNavigationBarIconBrightness: Brightness.light,
   );
-  
+
   // MARK: - Animation Durations (iOS Style)
   static const Duration quickAnimation = Duration(milliseconds: 150);
   static const Duration standardAnimation = Duration(milliseconds: 300);
   static const Duration slowAnimation = Duration(milliseconds: 500);
-  
+
   // MARK: - Curves (iOS Style)
   static const Curve iosCurve = Curves.easeInOut;
   static const Curve iosSpring = Curves.elasticOut;
@@ -363,7 +358,7 @@ extension IOSWidgetExtension on Widget {
       child: this,
     );
   }
-  
+
   /// Add iOS-style padding
   Widget withIOSPadding({double horizontal = 16, double vertical = 12}) {
     return Padding(
@@ -371,16 +366,12 @@ extension IOSWidgetExtension on Widget {
       child: this,
     );
   }
-  
+
   /// Add iOS-style animation
   Widget withIOSAnimation({
     Duration duration = IOSTheme.standardAnimation,
     Curve curve = IOSTheme.iosCurve,
   }) {
-    return AnimatedContainer(
-      duration: duration,
-      curve: curve,
-      child: this,
-    );
+    return AnimatedContainer(duration: duration, curve: curve, child: this);
   }
 }
