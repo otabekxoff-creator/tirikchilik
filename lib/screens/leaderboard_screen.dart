@@ -111,7 +111,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           return _buildLeaderboardItem(
             rank: index + 1,
             name: user['name'] as String,
-            value: '\$${(user['earned'] as double).toStringAsFixed(2)}',
+            value: '${(user['earned'] as double).toStringAsFixed(0)} so\'m',
             avatar: user['avatar'] as String,
             isTop3: index < 3,
           );

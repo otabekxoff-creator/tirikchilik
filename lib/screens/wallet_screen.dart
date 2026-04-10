@@ -42,7 +42,7 @@ class WalletScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '\$${wallet?.balance.toStringAsFixed(2) ?? "0.00"}',
+                    '${wallet?.balance.toStringAsFixed(0) ?? "0"} so\'m',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 42,
@@ -171,7 +171,7 @@ class WalletScreen extends StatelessWidget {
           style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
         ),
         trailing: Text(
-          '${isPositive ? '+' : '-'}\$${tx.amount.toStringAsFixed(2)}',
+          '${isPositive ? '+' : '-'}${tx.amount.toStringAsFixed(0)} so\'m',
           style: TextStyle(
             color: color,
             fontWeight: FontWeight.bold,
@@ -229,7 +229,7 @@ class WalletScreen extends StatelessWidget {
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
                   labelText: 'Summa',
-                  prefixText: '\$',
+                  prefixText: 'so\'m ',
                 ),
               ),
               const SizedBox(height: 16),

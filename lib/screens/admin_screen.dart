@@ -135,12 +135,12 @@ class _AdminScreenState extends State<AdminScreen>
                     ),
                     _buildStatCard(
                       'Jami balans',
-                      '\$${totalBalance.toStringAsFixed(2)}',
+                      '${totalBalance.toStringAsFixed(0)} so\'m',
                       Icons.account_balance_wallet,
                     ),
                     _buildStatCard(
                       'Jami ishlangan',
-                      '\$${totalEarned.toStringAsFixed(2)}',
+                      '${totalEarned.toStringAsFixed(0)} so\'m',
                       Icons.attach_money,
                     ),
                   ],
@@ -195,7 +195,7 @@ class _AdminScreenState extends State<AdminScreen>
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '\${wallet?.balance.toStringAsFixed(2) ?? "0.00"}',
+                        '${wallet?.balance.toStringAsFixed(0) ?? "0"} so\'m',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.green,
@@ -345,7 +345,7 @@ class _AdminScreenState extends State<AdminScreen>
                 Icon(Icons.attach_money, size: 14, color: Colors.grey.shade600),
                 const SizedBox(width: 4),
                 Text(
-                  '\$${ad['reward']?.toStringAsFixed(2) ?? level.reward.toStringAsFixed(2)}',
+                  '${ad['reward']?.toStringAsFixed(0) ?? level.reward.toStringAsFixed(0)} so\'m',
                   style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                 ),
               ],
@@ -506,8 +506,8 @@ class _AdminScreenState extends State<AdminScreen>
                   TextField(
                     controller: rewardController,
                     decoration: const InputDecoration(
-                      labelText: 'Mukofot (\$)',
-                      prefixText: '\$',
+                      labelText: 'Mukofot (so\'m)',
+                      prefixText: 'so\'m ',
                     ),
                     keyboardType: TextInputType.number,
                   ),
@@ -624,12 +624,12 @@ class _AdminScreenState extends State<AdminScreen>
             _buildDetailRow('Telefon:', user.phone),
             _buildDetailRow(
               'Balans:',
-              '\${wallet?.balance.toStringAsFixed(2) ?? "0.00"}',
+              '${wallet?.balance.toStringAsFixed(0) ?? "0"} so\'m',
             ),
             _buildDetailRow('Reklamalar:', '${user.totalAdsWatched} ta'),
             _buildDetailRow(
               'Jami ishlangan:',
-              '\${user.totalEarned.toStringAsFixed(2)}',
+              '${user.totalEarned.toStringAsFixed(0)} so\'m',
             ),
             _buildDetailRow('Premium:', user.isPremium ? 'Ha' : 'Yo\'q'),
             if (user.isPremium)

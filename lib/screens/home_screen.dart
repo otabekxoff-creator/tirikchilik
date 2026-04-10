@@ -130,7 +130,7 @@ class _HomeTabState extends State<_HomeTab> {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
+                                  color: Colors.white.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Icon(
@@ -151,7 +151,7 @@ class _HomeTabState extends State<_HomeTab> {
                                     ),
                                   ),
                                   Text(
-                                    '\$${wallet?.balance.toStringAsFixed(2) ?? "0.00"}',
+                                    '${wallet?.balance.toStringAsFixed(0) ?? "0"} so\'m',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 28,
@@ -315,7 +315,9 @@ class _HomeTabState extends State<_HomeTab> {
                             child: LinearProgressIndicator(
                               value:
                                   provider.remainingAds / provider.dailyAdLimit,
-                              backgroundColor: Colors.white.withOpacity(0.3),
+                              backgroundColor: Colors.white.withValues(
+                                alpha: 0.7,
+                              ),
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 provider.canWatchAd
                                     ? Colors.white
@@ -377,7 +379,7 @@ class _HomeTabState extends State<_HomeTab> {
                                 ),
                                 _buildStatItem(
                                   'Jami',
-                                  '\$${user?.totalEarned.toStringAsFixed(2) ?? "0.00"}',
+                                  '${user?.totalEarned.toStringAsFixed(0) ?? "0"} so\'m',
                                   Icons.attach_money,
                                 ),
                               ],

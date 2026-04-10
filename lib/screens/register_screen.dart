@@ -55,7 +55,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       provider.clearError();
     } else if (mounted) {
       final message = referralCode != null && referralCode.isNotEmpty
-          ? 'Ro\'yxatdan o\'tish muvaffaqiyatli! Referral bonus: \$1.00'
+          ? 'Ro\'yxatdan o\'tish muvaffaqiyatli! Referral bonus: 10 000 so\'m'
           : 'Ro\'yxatdan o\'tish muvaffaqiyatli! Endi kirishingiz mumkin.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), backgroundColor: Colors.green),
@@ -247,7 +247,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      'Referral kod bilan ro\'yxatdan o\'tsangiz, \$1.00 bonus olasiz!',
+                                      'Referral kod bilan ro\'yxatdan o\'tsangiz, 10 000 so\'m bonus olasiz!',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.green.shade700,

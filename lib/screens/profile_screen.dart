@@ -133,7 +133,7 @@ class ProfileScreen extends StatelessWidget {
                   _buildInfoTile(
                     Icons.attach_money,
                     'Jami ishlangan',
-                    '\$${user.totalEarned.toStringAsFixed(2)}',
+                    '${user.totalEarned.toStringAsFixed(0)} so\'m',
                   ),
                   if (user.referralCode != null) ...[
                     const Divider(height: 1),
@@ -274,7 +274,7 @@ class ProfileScreen extends StatelessWidget {
             _buildFeatureItem('Maxsus support'),
             const SizedBox(height: 16),
             const Text(
-              'Narxi: \$9.99/oy',
+              'Narxi: 14 900 so\'m/oy',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,

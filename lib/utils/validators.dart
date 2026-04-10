@@ -51,7 +51,7 @@ class Validators {
       return 'Noto\'g\'ri summa';
     }
     if (amount > maxAmount) {
-      return 'Maksimal summa: \$${maxAmount.toStringAsFixed(2)}';
+      return 'Maksimal summa: ${maxAmount.toStringAsFixed(0)} so\'m';
     }
     return null;
   }
