@@ -9,6 +9,7 @@ import 'screens/splash_screen.dart';
 import 'services/admob_service.dart';
 import 'utils/app_logger.dart';
 import 'package:logging/logging.dart' as logging;
+import 'theme/ios_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,15 +32,8 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // Set system UI overlay style
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Colors.black,
-      systemNavigationBarIconBrightness: Brightness.light,
-    ),
-  );
+  // Set system UI overlay style (iOS style)
+  SystemChrome.setSystemUIOverlayStyle(IOSTheme.lightOverlay);
 
   runApp(const MyApp());
 }
@@ -95,200 +89,253 @@ class MyApp extends StatelessWidget {
 
   ThemeData _buildLightTheme() {
     return ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF007AFF),
-        brightness: Brightness.light,
-      ),
       useMaterial3: true,
-      // iOS-style typography
-      fontFamily: 'SF Pro Display',
-      textTheme: const TextTheme(
-        displayLarge: TextStyle(fontWeight: FontWeight.w600),
-        displayMedium: TextStyle(fontWeight: FontWeight.w600),
-        headlineLarge: TextStyle(fontWeight: FontWeight.w600),
-        headlineMedium: TextStyle(fontWeight: FontWeight.w600),
-        titleLarge: TextStyle(fontWeight: FontWeight.w600),
-        titleMedium: TextStyle(fontWeight: FontWeight.w600),
-        titleSmall: TextStyle(fontWeight: FontWeight.w500),
-        bodyLarge: TextStyle(fontWeight: FontWeight.w400),
-        bodyMedium: TextStyle(fontWeight: FontWeight.w400),
-        labelLarge: TextStyle(fontWeight: FontWeight.w600),
+      brightness: Brightness.light,
+      // iOS 26 System Colors
+      colorScheme: const ColorScheme.light(
+        primary: IOSTheme.systemBlue,
+        onPrimary: IOSTheme.systemBackground,
+        secondary: IOSTheme.systemIndigo,
+        onSecondary: IOSTheme.systemBackground,
+        surface: IOSTheme.systemBackground,
+        onSurface: IOSTheme.label,
+        surfaceContainerHighest: IOSTheme.secondarySystemBackground,
+        error: IOSTheme.systemRed,
+        onError: IOSTheme.systemBackground,
       ),
-      appBarTheme: const AppBarTheme(
-        centerTitle: true,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Color(0xFF007AFF),
-        titleTextStyle: TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w600,
-          color: Colors.black,
-        ),
+      // iOS Typography
+      fontFamily: IOSTheme.fontFamily,
+      textTheme: TextTheme(
+        displayLarge: IOSTheme.largeTitle,
+        displayMedium: IOSTheme.title1,
+        headlineLarge: IOSTheme.title2,
+        headlineMedium: IOSTheme.title3,
+        titleLarge: IOSTheme.headline,
+        titleMedium: IOSTheme.body.copyWith(fontWeight: FontWeight.w600),
+        bodyLarge: IOSTheme.body,
+        bodyMedium: IOSTheme.callout,
+        bodySmall: IOSTheme.subhead,
+        labelLarge: IOSTheme.headline.copyWith(color: IOSTheme.systemBlue),
+        labelSmall: IOSTheme.caption1,
       ),
-      cardTheme: const CardThemeData(
+      // iOS AppBar
+      appBarTheme: IOSTheme.iosAppBar,
+      // iOS Cards
+      cardTheme: CardTheme(
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
+          borderRadius: BorderRadius.circular(IOSTheme.radius16),
         ),
-        color: Colors.white,
+        color: IOSTheme.systemBackground,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
+      // iOS Buttons
       elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          elevation: 0,
-          backgroundColor: const Color(0xFF007AFF),
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-        ),
+        style: IOSTheme.filledButtonStyle,
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFF007AFF),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          side: const BorderSide(color: Color(0xFF007AFF)),
-        ),
+        style: IOSTheme.outlinedButtonStyle,
       ),
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(foregroundColor: const Color(0xFF007AFF)),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: const Color(0xFFF2F2F7),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFF007AFF), width: 1),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
-      ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: Colors.white,
-        selectedItemColor: Color(0xFF007AFF),
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        elevation: 0,
-      ),
+      textButtonTheme: TextButtonThemeData(style: IOSTheme.textButtonStyle),
+      // iOS Input
+      inputDecorationTheme: IOSTheme.iosInputTheme,
+      // iOS Navigation
+      bottomNavigationBarTheme: IOSTheme.iosNavBar,
+      // iOS Dividers
       dividerTheme: const DividerThemeData(
-        color: Color(0xFFE5E5EA),
-        thickness: 1,
+        color: IOSTheme.separator,
+        thickness: 0.5,
+        space: 0.5,
       ),
-      scaffoldBackgroundColor: const Color(0xFFF2F2F7),
+      // iOS Background
+      scaffoldBackgroundColor: IOSTheme.systemGroupedBackground,
+      // iOS Dialog
+      dialogTheme: DialogTheme(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(IOSTheme.radius20),
+        ),
+        backgroundColor: IOSTheme.systemBackground,
+      ),
+      // iOS Bottom Sheet
+      bottomSheetTheme: BottomSheetThemeData(
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(IOSTheme.radius20),
+            topRight: Radius.circular(IOSTheme.radius20),
+          ),
+        ),
+        backgroundColor: IOSTheme.systemBackground,
+      ),
+      // iOS Chip
+      chipTheme: ChipThemeData(
+        backgroundColor: IOSTheme.systemGray6,
+        selectedColor: IOSTheme.systemBlue.withValues(alpha: 0.15),
+        labelStyle: IOSTheme.subhead,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(IOSTheme.radiusFull),
+        ),
+      ),
     );
   }
 
   ThemeData _buildDarkTheme() {
     return ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF0A84FF),
-        brightness: Brightness.dark,
-      ),
       useMaterial3: true,
       brightness: Brightness.dark,
-      // iOS-style typography
-      fontFamily: 'SF Pro Display',
-      textTheme: const TextTheme(
-        displayLarge: TextStyle(fontWeight: FontWeight.w600),
-        displayMedium: TextStyle(fontWeight: FontWeight.w600),
-        headlineLarge: TextStyle(fontWeight: FontWeight.w600),
-        headlineMedium: TextStyle(fontWeight: FontWeight.w600),
-        titleLarge: TextStyle(fontWeight: FontWeight.w600),
-        titleMedium: TextStyle(fontWeight: FontWeight.w600),
-        titleSmall: TextStyle(fontWeight: FontWeight.w500),
-        bodyLarge: TextStyle(fontWeight: FontWeight.w400),
-        bodyMedium: TextStyle(fontWeight: FontWeight.w400),
-        labelLarge: TextStyle(fontWeight: FontWeight.w600),
+      // iOS Dark System Colors
+      colorScheme: const ColorScheme.dark(
+        primary: IOSTheme.systemCyan,
+        onPrimary: IOSTheme.darkSystemBackground,
+        secondary: IOSTheme.systemIndigo,
+        onSecondary: IOSTheme.darkSystemBackground,
+        surface: IOSTheme.darkSystemBackground,
+        onSurface: IOSTheme.darkLabel,
+        surfaceContainerHighest: IOSTheme.darkSecondarySystemBackground,
+        error: IOSTheme.systemRed,
+        onError: IOSTheme.darkSystemBackground,
       ),
-      appBarTheme: const AppBarTheme(
+      // iOS Typography (Dark)
+      fontFamily: IOSTheme.fontFamily,
+      textTheme: TextTheme(
+        displayLarge: IOSTheme.largeTitle.copyWith(color: IOSTheme.darkLabel),
+        displayMedium: IOSTheme.title1.copyWith(color: IOSTheme.darkLabel),
+        headlineLarge: IOSTheme.title2.copyWith(color: IOSTheme.darkLabel),
+        headlineMedium: IOSTheme.title3.copyWith(color: IOSTheme.darkLabel),
+        titleLarge: IOSTheme.headline.copyWith(color: IOSTheme.darkLabel),
+        titleMedium: IOSTheme.body.copyWith(
+          fontWeight: FontWeight.w600,
+          color: IOSTheme.darkLabel,
+        ),
+        bodyLarge: IOSTheme.body.copyWith(color: IOSTheme.darkLabel),
+        bodyMedium: IOSTheme.callout.copyWith(color: IOSTheme.darkLabel),
+        bodySmall: IOSTheme.subhead.copyWith(color: IOSTheme.darkLabel),
+        labelLarge: IOSTheme.headline.copyWith(color: IOSTheme.systemCyan),
+        labelSmall: IOSTheme.caption1.copyWith(
+          color: IOSTheme.darkSecondaryLabel,
+        ),
+      ),
+      // iOS AppBar (Dark)
+      appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Color(0xFF0A84FF),
-        titleTextStyle: TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w600,
-          color: Colors.white,
-        ),
+        backgroundColor: IOSTheme.darkSystemBackground,
+        foregroundColor: IOSTheme.systemCyan,
+        titleTextStyle: IOSTheme.headline.copyWith(color: IOSTheme.darkLabel),
+        toolbarHeight: 44,
       ),
-      cardTheme: const CardThemeData(
+      // iOS Cards (Dark)
+      cardTheme: CardTheme(
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
+          borderRadius: BorderRadius.circular(IOSTheme.radius16),
         ),
-        color: Color(0xFF1C1C1E),
+        color: IOSTheme.darkSecondarySystemBackground,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
+      // iOS Buttons (Dark)
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          backgroundColor: const Color(0xFF0A84FF),
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
+          backgroundColor: IOSTheme.systemCyan,
+          foregroundColor: IOSTheme.darkSystemBackground,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(IOSTheme.radius12),
+          ),
+          textStyle: IOSTheme.headline.copyWith(
+            color: IOSTheme.darkSystemBackground,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFF0A84FF),
+          foregroundColor: IOSTheme.systemCyan,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(IOSTheme.radius12),
           ),
-          side: const BorderSide(color: Color(0xFF0A84FF)),
+          side: const BorderSide(color: IOSTheme.systemCyan, width: 1),
+          textStyle: IOSTheme.headline.copyWith(color: IOSTheme.systemCyan),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(foregroundColor: const Color(0xFF0A84FF)),
+        style: TextButton.styleFrom(
+          foregroundColor: IOSTheme.systemCyan,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          textStyle: IOSTheme.headline.copyWith(color: IOSTheme.systemCyan),
+        ),
       ),
+      // iOS Input (Dark)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFF1C1C1E),
+        fillColor: IOSTheme.darkSecondarySystemBackground,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(IOSTheme.radius12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(IOSTheme.radius12),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFF0A84FF), width: 1),
+          borderRadius: BorderRadius.circular(IOSTheme.radius12),
+          borderSide: const BorderSide(color: IOSTheme.systemCyan, width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(IOSTheme.radius12),
+          borderSide: const BorderSide(color: IOSTheme.systemRed, width: 1.5),
         ),
+        hintStyle: IOSTheme.body.copyWith(color: IOSTheme.darkPlaceholderText),
       ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: Color(0xFF1C1C1E),
-        selectedItemColor: Color(0xFF0A84FF),
-        unselectedItemColor: Colors.grey,
+      // iOS Navigation (Dark)
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: IOSTheme.darkSystemBackground,
+        selectedItemColor: IOSTheme.systemCyan,
+        unselectedItemColor: IOSTheme.systemGray,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
+        selectedLabelStyle: IOSTheme.caption2,
+        unselectedLabelStyle: IOSTheme.caption2,
       ),
+      // iOS Dividers (Dark)
       dividerTheme: const DividerThemeData(
-        color: Color(0xFF38383A),
-        thickness: 1,
+        color: IOSTheme.darkSeparator,
+        thickness: 0.5,
+        space: 0.5,
       ),
-      scaffoldBackgroundColor: const Color(0xFF000000),
+      // iOS Background (Dark)
+      scaffoldBackgroundColor: IOSTheme.darkSystemGroupedBackground,
+      // iOS Dialog (Dark)
+      dialogTheme: DialogTheme(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(IOSTheme.radius20),
+        ),
+        backgroundColor: IOSTheme.darkSecondarySystemBackground,
+      ),
+      // iOS Bottom Sheet (Dark)
+      bottomSheetTheme: BottomSheetThemeData(
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(IOSTheme.radius20),
+            topRight: Radius.circular(IOSTheme.radius20),
+          ),
+        ),
+        backgroundColor: IOSTheme.darkSecondarySystemBackground,
+      ),
+      // iOS Chip (Dark)
+      chipTheme: ChipThemeData(
+        backgroundColor: IOSTheme.darkTertiarySystemBackground,
+        selectedColor: IOSTheme.systemCyan.withValues(alpha: 0.15),
+        labelStyle: IOSTheme.subhead.copyWith(color: IOSTheme.darkLabel),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(IOSTheme.radiusFull),
+        ),
+      ),
     );
   }
 }
