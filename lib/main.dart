@@ -121,7 +121,7 @@ class MyApp extends StatelessWidget {
       // iOS AppBar
       appBarTheme: IOSTheme.iosAppBar,
       // iOS Cards
-      cardTheme: CardTheme(
+      cardTheme: const CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(IOSTheme.radius16),
@@ -150,7 +150,7 @@ class MyApp extends StatelessWidget {
       // iOS Background
       scaffoldBackgroundColor: IOSTheme.systemGroupedBackground,
       // iOS Dialog
-      dialogTheme: DialogTheme(
+      dialogTheme: const DialogThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(IOSTheme.radius20),
         ),
@@ -225,7 +225,7 @@ class MyApp extends StatelessWidget {
         toolbarHeight: 44,
       ),
       // iOS Cards (Dark)
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(IOSTheme.radius16),
@@ -290,7 +290,7 @@ class MyApp extends StatelessWidget {
           borderRadius: BorderRadius.circular(IOSTheme.radius12),
           borderSide: const BorderSide(color: IOSTheme.systemRed, width: 1.5),
         ),
-        hintStyle: IOSTheme.body.copyWith(color: IOSTheme.darkPlaceholderText),
+        hintStyle: IOSTheme.body.copyWith(color: IOSTheme.darkTertiaryLabel),
       ),
       // iOS Navigation (Dark)
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
@@ -311,7 +311,7 @@ class MyApp extends StatelessWidget {
       // iOS Background (Dark)
       scaffoldBackgroundColor: IOSTheme.darkSystemGroupedBackground,
       // iOS Dialog (Dark)
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(IOSTheme.radius20),
         ),
