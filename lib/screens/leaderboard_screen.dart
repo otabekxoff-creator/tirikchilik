@@ -148,7 +148,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         itemCount: _topEarners.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final user = _topEarners[index];
           return _buildLeaderboardItem(
@@ -177,7 +177,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         itemCount: _topWatchers.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final user = _topWatchers[index];
           return _buildLeaderboardItem(
