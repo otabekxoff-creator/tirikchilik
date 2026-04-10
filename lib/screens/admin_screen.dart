@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../services/auth_service.dart';
 import '../services/wallet_service.dart';
 import '../services/ad_storage_service.dart';
 import '../models/ad_model.dart';
+import '../theme/ios_theme.dart';
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
@@ -18,11 +20,26 @@ class _AdminScreenState extends State<AdminScreen>
   final WalletService _walletService = WalletService();
   final AdStorageService _adStorageService = AdStorageService();
   late TabController _tabController;
+  final TextEditingController _searchController = TextEditingController();
 
-  List<dynamic> _users = [];
+  List<dynamic> _allUsers = [];
+  List<dynamic> _filteredUsers = [];
   List<dynamic> _wallets = [];
   List<Map<String, dynamic>> _ads = [];
   bool _isLoading = true;
+  String _error = '';
+  String _searchQuery = '';
+  UserSortOption _sortOption = UserSortOption.newest;
+
+  // Pagination
+  final int _usersPerPage = 20;
+  int _currentPage = 0;
+  late List<dynamic> _paginatedUsers;
+  bool _hasMoreUsers = false;
+
+  // Selection for bulk actions
+  final Set<String> _selectedUserIds = {};
+  bool _isSelectionMode = false;
 
   @override
   void initState() {
@@ -34,193 +51,826 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
   Future<void> _loadData() async {
-    final users = await _authService.getAllUsers();
-    final wallets = await _walletService.getAllWallets();
-    final ads = await _adStorageService.getAllAds();
     setState(() {
-      _users = users;
-      _wallets = wallets;
-      _ads = ads;
-      _isLoading = false;
+      _isLoading = true;
+      _error = '';
+    });
+
+    try {
+      HapticFeedback.mediumImpact();
+      final users = await _authService.getAllUsers();
+      final wallets = await _walletService.getAllWallets();
+      final ads = await _adStorageService.getAllAds();
+
+      setState(() {
+        _allUsers = users;
+        _wallets = wallets;
+        _ads = ads;
+        _isLoading = false;
+        _applyFiltersAndSort();
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Ma\'lumotlarni yuklashda xatolik: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _applyFiltersAndSort() {
+    var users = [..._allUsers];
+
+    // Apply search filter
+    if (_searchQuery.isNotEmpty) {
+      users = users.where((user) {
+        final name = (user.name ?? '').toLowerCase();
+        final email = (user.email ?? '').toLowerCase();
+        final phone = (user.phone ?? '').toLowerCase();
+        final query = _searchQuery.toLowerCase();
+        return name.contains(query) ||
+            email.contains(query) ||
+            phone.contains(query);
+      }).toList();
+    }
+
+    // Apply sort
+    switch (_sortOption) {
+      case UserSortOption.newest:
+        users.sort((a, b) {
+          final dateA = a.createdAt ?? DateTime(2000);
+          final dateB = b.createdAt ?? DateTime(2000);
+          return dateB.compareTo(dateA);
+        });
+        break;
+      case UserSortOption.name:
+        users.sort((a, b) => (a.name ?? '').compareTo(b.name ?? ''));
+        break;
+      case UserSortOption.earned:
+        users.sort((a, b) {
+          final earnedA = a.totalEarned ?? 0;
+          final earnedB = b.totalEarned ?? 0;
+          return earnedB.compareTo(earnedA);
+        });
+        break;
+      case UserSortOption.adsWatched:
+        users.sort((a, b) {
+          final adsA = a.totalAdsWatched ?? 0;
+          final adsB = b.totalAdsWatched ?? 0;
+          return adsB.compareTo(adsA);
+        });
+        break;
+    }
+
+    // Apply pagination
+    _currentPage = 0;
+    _filteredUsers = users;
+    _updatePaginatedUsers(users);
+  }
+
+  void _updatePaginatedUsers(List<dynamic> users) {
+    final startIndex = _currentPage * _usersPerPage;
+    final endIndex = (startIndex + _usersPerPage).clamp(0, users.length);
+    _paginatedUsers = users.sublist(startIndex, endIndex);
+    _hasMoreUsers = endIndex < users.length;
+  }
+
+  void _loadMoreUsers() {
+    _currentPage++;
+    _updatePaginatedUsers(_filteredUsers);
+    setState(() {});
+  }
+
+  void _toggleUserSelection(String userId) {
+    setState(() {
+      if (_selectedUserIds.contains(userId)) {
+        _selectedUserIds.remove(userId);
+      } else {
+        _selectedUserIds.add(userId);
+      }
+      if (_selectedUserIds.isEmpty) {
+        _isSelectionMode = false;
+      }
     });
   }
 
+  void _toggleSelectionMode() {
+    setState(() {
+      _isSelectionMode = !_isSelectionMode;
+      if (!_isSelectionMode) {
+        _selectedUserIds.clear();
+      }
+    });
+  }
+
+  // MARK: - Build UI
+
   @override
   Widget build(BuildContext context) {
-    final totalUsers = _users.length;
-    final totalBalance = _wallets.fold<double>(0, (sum, w) => sum + w.balance);
-    final totalEarned = _users.fold<double>(0, (sum, u) => sum + u.totalEarned);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final totalUsers = _allUsers.length;
+    final totalBalance = _wallets.fold<double>(
+      0,
+      (sum, w) => sum + (w.balance ?? 0),
+    );
+    final totalEarned = _allUsers.fold<double>(
+      0,
+      (sum, u) => sum + (u.totalEarned ?? 0),
+    );
+    final premiumUsers = _allUsers.where((u) => u.isPremium == true).length;
+    final activeUsers = _allUsers.where((u) {
+      if (u.lastAdWatchDate == null) return false;
+      return DateTime.now().difference(u.lastAdWatchDate!).inDays <= 1;
+    }).length;
 
     return Scaffold(
+      backgroundColor: isDark
+          ? IOSTheme.darkSystemGroupedBackground
+          : IOSTheme.systemGroupedBackground,
       appBar: AppBar(
-        title: const Text('Admin Panel'),
-        backgroundColor: Colors.red.shade700,
-        foregroundColor: Colors.white,
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Colors.white,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          tabs: const [
-            Tab(icon: Icon(Icons.people), text: 'Foydalanuvchilar'),
-            Tab(icon: Icon(Icons.videocam), text: 'Reklamalar'),
-          ],
+        title: Text(
+          'Admin Panel',
+          style: IOSTheme.headline.copyWith(
+            color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+          ),
+        ),
+        backgroundColor: isDark
+            ? IOSTheme.darkTertiarySystemBackground
+            : IOSTheme.systemBackground,
+        foregroundColor: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(
+              _isSelectionMode
+                  ? Icons.checklist_rounded
+                  : Icons.select_all_rounded,
+            ),
+            onPressed: _toggleSelectionMode,
+            tooltip: _isSelectionMode
+                ? 'Tanlashni bekor qilish'
+                : 'Ko\'p tanlash',
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            onPressed: _loadData,
+            tooltip: 'Yangilash',
+          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? IOSTheme.darkSecondarySystemGroupedBackground
+                  : IOSTheme.secondarySystemGroupedBackground,
+              borderRadius: BorderRadius.circular(IOSTheme.radius12),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              indicator: BoxDecoration(
+                borderRadius: BorderRadius.circular(IOSTheme.radius10),
+                boxShadow: IOSTheme.smallShadow,
+                gradient: const LinearGradient(
+                  colors: [IOSTheme.systemRed, IOSTheme.systemPink],
+                ),
+              ),
+              indicatorSize: TabBarIndicatorSize.tab,
+              indicatorPadding: const EdgeInsets.all(4),
+              labelColor: Colors.white,
+              labelStyle: IOSTheme.headline,
+              unselectedLabelColor: isDark
+                  ? IOSTheme.darkSecondaryLabel
+                  : IOSTheme.secondaryLabel,
+              unselectedLabelStyle: IOSTheme.footnote,
+              tabs: const [
+                Tab(icon: Icon(Icons.people_rounded), text: 'Foydalanuvchilar'),
+                Tab(icon: Icon(Icons.videocam_rounded), text: 'Reklamalar'),
+              ],
+            ),
+          ),
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Ma\'lumotlar yuklanmoqda...',
+                    style: IOSTheme.subhead.copyWith(
+                      color: isDark
+                          ? IOSTheme.darkSecondaryLabel
+                          : IOSTheme.secondaryLabel,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : _error.isNotEmpty
+          ? _buildErrorState(isDark)
           : TabBarView(
               controller: _tabController,
               children: [
-                // Users Tab
-                _buildUsersTab(totalUsers, totalBalance, totalEarned),
-                // Ads Tab
-                _buildAdsTab(),
+                _buildUsersTab(
+                  isDark,
+                  totalUsers,
+                  totalBalance,
+                  totalEarned,
+                  premiumUsers,
+                  activeUsers,
+                ),
+                _buildAdsTab(isDark),
               ],
             ),
+      floatingActionButton: _isSelectionMode && _selectedUserIds.isNotEmpty
+          ? _buildBulkActionsButton(isDark)
+          : null,
     );
   }
 
-  Widget _buildUsersTab(
-    int totalUsers,
-    double totalBalance,
-    double totalEarned,
-  ) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+  Widget _buildErrorState(bool isDark) {
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(20),
+            width: 100,
+            height: 100,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.red.shade700, Colors.red.shade900],
-              ),
-              borderRadius: BorderRadius.circular(16),
+              shape: BoxShape.circle,
+              color: IOSTheme.systemRed.withValues(alpha: 0.1),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  children: [
-                    Icon(
-                      Icons.admin_panel_settings,
-                      color: Colors.white,
-                      size: 32,
-                    ),
-                    SizedBox(width: 12),
-                    Text(
-                      'Admin Panel',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildStatCard(
-                      'Foydalanuvchilar',
-                      '$totalUsers',
-                      Icons.people,
-                    ),
-                    _buildStatCard(
-                      'Jami balans',
-                      '${totalBalance.toStringAsFixed(0)} so\'m',
-                      Icons.account_balance_wallet,
-                    ),
-                    _buildStatCard(
-                      'Jami ishlangan',
-                      '${totalEarned.toStringAsFixed(0)} so\'m',
-                      Icons.attach_money,
-                    ),
-                  ],
-                ),
-              ],
+            child: Icon(
+              Icons.error_outline_rounded,
+              size: 56,
+              color: IOSTheme.systemRed,
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Foydalanuvchilar ro\'yxati',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          Text(
+            'Xatolik yuz berdi',
+            style: IOSTheme.title2.copyWith(
+              color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+            ),
           ),
-          const SizedBox(height: 16),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _users.length,
-            itemBuilder: (context, index) {
-              final user = _users[index];
-              final wallet = _wallets.firstWhere(
-                (w) => w.userId == user.id,
-                orElse: () => null,
-              );
-              return Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: user.isPremium
-                        ? Colors.amber
-                        : Colors.blue,
-                    child: Icon(
-                      user.isPremium ? Icons.workspace_premium : Icons.person,
-                      color: Colors.white,
-                    ),
-                  ),
-                  title: Text(user.name),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(user.email),
-                      Text(
-                        'Tel: ${user.phone}',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                  trailing: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${wallet?.balance.toStringAsFixed(0) ?? "0"} so\'m',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
-                      ),
-                      Text(
-                        '${user.totalAdsWatched} reklama',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                  onTap: () => _showUserDetails(context, user, wallet),
-                ),
-              );
-            },
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              _error,
+              style: IOSTheme.subhead.copyWith(
+                color: isDark
+                    ? IOSTheme.darkSecondaryLabel
+                    : IOSTheme.secondaryLabel,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: _loadData,
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('Qayta urinish'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: IOSTheme.systemBlue,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(IOSTheme.radius12),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAdsTab() {
+  Widget _buildUsersTab(
+    bool isDark,
+    int totalUsers,
+    double totalBalance,
+    double totalEarned,
+    int premiumUsers,
+    int activeUsers,
+  ) {
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        // Stats Grid
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1.4,
+                  children: [
+                    _buildStatCard(
+                      icon: Icons.people_rounded,
+                      value: '$totalUsers',
+                      label: 'Jami foyd.',
+                      color: IOSTheme.systemBlue,
+                      isDark: isDark,
+                    ),
+                    _buildStatCard(
+                      icon: Icons.check_circle_rounded,
+                      value: '$activeUsers',
+                      label: 'Faol',
+                      color: IOSTheme.systemGreen,
+                      isDark: isDark,
+                    ),
+                    _buildStatCard(
+                      icon: Icons.workspace_premium_rounded,
+                      value: '$premiumUsers',
+                      label: 'Premium',
+                      color: IOSTheme.systemYellow,
+                      isDark: isDark,
+                    ),
+                    _buildStatCard(
+                      icon: Icons.attach_money_rounded,
+                      value: '${totalEarned.toStringAsFixed(0)}',
+                      label: 'Jami ishlangan',
+                      color: IOSTheme.systemPurple,
+                      isDark: isDark,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Search Bar
+                Container(
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? IOSTheme.darkSecondarySystemGroupedBackground
+                        : IOSTheme.systemBackground,
+                    borderRadius: BorderRadius.circular(IOSTheme.radius12),
+                    boxShadow: IOSTheme.smallShadow,
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Foydalanuvchi qidirish...',
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        color: isDark
+                            ? IOSTheme.darkSecondaryLabel
+                            : IOSTheme.secondaryLabel,
+                      ),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear_rounded),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                                _applyFiltersAndSort();
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    onChanged: (value) {
+                      setState(() => _searchQuery = value);
+                      _applyFiltersAndSort();
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Sort & Filter Bar
+                Row(
+                  children: [
+                    Icon(
+                      Icons.sort_rounded,
+                      color: isDark
+                          ? IOSTheme.darkSecondaryLabel
+                          : IOSTheme.secondaryLabel,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Saralash:',
+                      style: IOSTheme.footnote.copyWith(
+                        color: isDark
+                            ? IOSTheme.darkSecondaryLabel
+                            : IOSTheme.secondaryLabel,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: UserSortOption.values.map((option) {
+                            final isSelected = _sortOption == option;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ActionChip(
+                                label: Text(
+                                  option.label,
+                                  style: IOSTheme.caption1.copyWith(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : (isDark
+                                              ? IOSTheme.darkSecondaryLabel
+                                              : IOSTheme.secondaryLabel),
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.w400,
+                                  ),
+                                ),
+                                backgroundColor: isSelected
+                                    ? IOSTheme.systemBlue
+                                    : (isDark
+                                          ? IOSTheme
+                                                .darkTertiarySystemBackground
+                                          : IOSTheme.systemGray6),
+                                onPressed: () {
+                                  HapticFeedback.selectionClick();
+                                  setState(() => _sortOption = option);
+                                  _applyFiltersAndSort();
+                                },
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Foydalanuvchilar (${_filteredUsers.length})',
+                      style: IOSTheme.title3.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+                      ),
+                    ),
+                    if (_hasMoreUsers)
+                      TextButton.icon(
+                        onPressed: _loadMoreUsers,
+                        icon: const Icon(Icons.expand_more_rounded),
+                        label: Text(
+                          'Ko\'proq',
+                          style: IOSTheme.footnote.copyWith(
+                            color: IOSTheme.systemBlue,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        ),
+        // Users List
+        _paginatedUsers.isEmpty
+            ? SliverFillRemaining(child: _buildEmptyUsersState(isDark))
+            : SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final user = _paginatedUsers[index];
+                  final wallet = _wallets.firstWhere(
+                    (w) => w.userId == user.id,
+                    orElse: () => null,
+                  );
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _buildUserCard(user, wallet, isDark),
+                  );
+                }, childCount: _paginatedUsers.length),
+              ),
+        const SliverToBoxAdapter(child: SizedBox(height: 80)),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String value,
+    required String label,
+    required Color color,
+    required bool isDark,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark
+            ? IOSTheme.darkSecondarySystemGroupedBackground
+            : IOSTheme.systemBackground,
+        borderRadius: BorderRadius.circular(IOSTheme.radius16),
+        boxShadow: IOSTheme.smallShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(IOSTheme.radius10),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const Spacer(),
+          Text(
+            value,
+            style: IOSTheme.title3.copyWith(
+              fontWeight: FontWeight.w800,
+              color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+            ),
+          ),
+          Text(
+            label,
+            style: IOSTheme.caption1.copyWith(
+              color: isDark
+                  ? IOSTheme.darkSecondaryLabel
+                  : IOSTheme.secondaryLabel,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserCard(dynamic user, dynamic wallet, bool isDark) {
+    final isSelected = _selectedUserIds.contains(user.id);
+
+    return Dismissible(
+      key: Key(user.id.toString()),
+      direction: _isSelectionMode
+          ? DismissDirection.none
+          : DismissDirection.horizontal,
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.startToEnd) {
+          return await _confirmDeleteUser(user);
+        } else if (direction == DismissDirection.endToStart) {
+          _editUser(user, wallet);
+          return false;
+        }
+        return false;
+      },
+      background: _buildSwipeBackground(
+        icon: Icons.delete_rounded,
+        color: IOSTheme.systemRed,
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.only(left: 20),
+      ),
+      secondaryBackground: _buildSwipeBackground(
+        icon: Icons.edit_rounded,
+        color: IOSTheme.systemBlue,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+      ),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isDark
+                    ? IOSTheme.systemBlue.withValues(alpha: 0.2)
+                    : IOSTheme.systemBlue.withValues(alpha: 0.1))
+              : (isDark
+                    ? IOSTheme.darkSecondarySystemGroupedBackground
+                    : IOSTheme.systemBackground),
+          borderRadius: BorderRadius.circular(IOSTheme.radius16),
+          border: _isSelectionMode
+              ? Border.all(
+                  color: isSelected
+                      ? IOSTheme.systemBlue
+                      : (isDark ? IOSTheme.darkSeparator : IOSTheme.separator),
+                  width: isSelected ? 2 : 1,
+                )
+              : null,
+          boxShadow: IOSTheme.smallShadow,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(IOSTheme.radius16),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              if (_isSelectionMode) {
+                _toggleUserSelection(user.id.toString());
+              } else {
+                _showUserDetails(context, user, wallet, isDark);
+              }
+            },
+            onLongPress: () => _toggleUserSelection(user.id.toString()),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  if (_isSelectionMode)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: Icon(
+                        isSelected
+                            ? Icons.check_circle_rounded
+                            : Icons.circle_outlined,
+                        color: isSelected
+                            ? IOSTheme.systemBlue
+                            : (isDark
+                                  ? IOSTheme.darkSecondaryLabel
+                                  : IOSTheme.systemGray),
+                        size: 24,
+                      ),
+                    ),
+                  // Avatar
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: user.isPremium == true
+                          ? const LinearGradient(colors: IOSTheme.goldGradient)
+                          : LinearGradient(
+                              colors: [
+                                IOSTheme.systemBlue,
+                                IOSTheme.systemPurple,
+                              ],
+                            ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        (user.name ?? '?')[0].toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // User Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                user.name ?? 'Noma\'lum',
+                                style: IOSTheme.headline.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? IOSTheme.darkLabel
+                                      : IOSTheme.label,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (user.isPremium == true)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: IOSTheme.systemYellow.withValues(
+                                    alpha: 0.12,
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                    IOSTheme.radius4,
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.workspace_premium_rounded,
+                                  color: IOSTheme.systemYellow,
+                                  size: 14,
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          user.email ?? 'Email yo\'q',
+                          style: IOSTheme.caption1.copyWith(
+                            color: isDark
+                                ? IOSTheme.darkSecondaryLabel
+                                : IOSTheme.secondaryLabel,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Stats
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${(wallet?.balance ?? 0).toStringAsFixed(0)} so\'m',
+                        style: IOSTheme.footnote.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: IOSTheme.systemGreen,
+                        ),
+                      ),
+                      Text(
+                        '${user.totalAdsWatched ?? 0} ta',
+                        style: IOSTheme.caption1.copyWith(
+                          color: isDark
+                              ? IOSTheme.darkTertiaryLabel
+                              : IOSTheme.secondaryLabel,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSwipeBackground({
+    required IconData icon,
+    required Color color,
+    required Alignment alignment,
+    required EdgeInsetsGeometry padding,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(IOSTheme.radius16),
+      ),
+      alignment: alignment,
+      padding: padding,
+      child: Icon(icon, color: Colors.white, size: 28),
+    );
+  }
+
+  Widget _buildEmptyUsersState(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isDark
+                  ? IOSTheme.darkTertiarySystemBackground
+                  : IOSTheme.systemGray6,
+            ),
+            child: Icon(
+              Icons.people_outline_rounded,
+              size: 56,
+              color: isDark
+                  ? IOSTheme.darkSecondaryLabel
+                  : IOSTheme.secondaryLabel,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Foydalanuvchilar topilmadi',
+            style: IOSTheme.title3.copyWith(
+              color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _searchQuery.isNotEmpty
+                ? 'Qidiruv so\'zini o\'zgartiring'
+                : 'Hali foydalanuvchilar yo\'q',
+            style: IOSTheme.subhead.copyWith(
+              color: isDark
+                  ? IOSTheme.darkSecondaryLabel
+                  : IOSTheme.secondaryLabel,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdsTab(bool isDark) {
     return Column(
       children: [
         Padding(
@@ -229,19 +879,27 @@ class _AdminScreenState extends State<AdminScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Reklamalar ro\'yxati (${_ads.length})',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                'Reklamalar (${_ads.length})',
+                style: IOSTheme.title3.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
                 ),
               ),
               ElevatedButton.icon(
                 onPressed: _showAddAdDialog,
-                icon: const Icon(Icons.add),
-                label: const Text('Yangi reklama'),
+                icon: const Icon(Icons.add_rounded, size: 20),
+                label: const Text('Yangi'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade700,
+                  backgroundColor: IOSTheme.systemRed,
                   foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(IOSTheme.radius10),
+                  ),
                 ),
               ),
             ],
@@ -249,13 +907,15 @@ class _AdminScreenState extends State<AdminScreen>
         ),
         Expanded(
           child: _ads.isEmpty
-              ? _buildEmptyAdsState()
-              : ListView.builder(
+              ? _buildEmptyAdsState(isDark)
+              : ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: _ads.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final ad = _ads[index];
-                    return _buildAdCard(ad);
+                    return _buildAdCard(ad, isDark);
                   },
                 ),
         ),
@@ -263,142 +923,345 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
-  Widget _buildEmptyAdsState() {
+  Widget _buildEmptyAdsState(bool isDark) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.videocam_off, size: 64, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: IOSTheme.systemRed.withValues(alpha: 0.1),
+            ),
+            child: Icon(
+              Icons.videocam_off_rounded,
+              size: 56,
+              color: IOSTheme.systemRed,
+            ),
+          ),
+          const SizedBox(height: 24),
           Text(
             'Hali reklamalar yo\'q',
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+            style: IOSTheme.title3.copyWith(
+              color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             'Yangi reklama qo\'shish uchun tugmani bosing',
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+            style: IOSTheme.subhead.copyWith(
+              color: isDark
+                  ? IOSTheme.darkSecondaryLabel
+                  : IOSTheme.secondaryLabel,
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAdCard(Map<String, dynamic> ad) {
+  Widget _buildAdCard(Map<String, dynamic> ad, bool isDark) {
     final level = AdLevel.values.firstWhere(
       (e) => e.toString() == 'AdLevel.${ad['level']}',
       orElse: () => AdLevel.oddiy,
     );
     final isActive = ad['isActive'] ?? true;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        leading: Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: level.color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(level.icon, color: level.color),
-        ),
-        title: Text(
-          ad['title'] ?? 'Nomsiz reklama',
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Text(ad['description'] ?? 'Tavsif yo\'q'),
-            const SizedBox(height: 8),
-            Row(
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark
+            ? IOSTheme.darkSecondarySystemGroupedBackground
+            : IOSTheme.systemBackground,
+        borderRadius: BorderRadius.circular(IOSTheme.radius16),
+        boxShadow: IOSTheme.smallShadow,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(IOSTheme.radius16),
+          onTap: () => _showAdDetails(ad, isDark),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
+                  width: 56,
+                  height: 56,
                   decoration: BoxDecoration(
-                    color: level.color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
+                    color: level.color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(IOSTheme.radius12),
                   ),
-                  child: Text(
-                    level.label,
-                    style: TextStyle(
-                      color: level.color,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                  child: Icon(level.icon, color: level.color, size: 28),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        ad['title'] ?? 'Nomsiz reklama',
+                        style: IOSTheme.headline.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        ad['description'] ?? 'Tavsif yo\'q',
+                        style: IOSTheme.caption1.copyWith(
+                          color: isDark
+                              ? IOSTheme.darkSecondaryLabel
+                              : IOSTheme.secondaryLabel,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: level.color.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(
+                                IOSTheme.radius4,
+                              ),
+                            ),
+                            child: Text(
+                              level.label,
+                              style: IOSTheme.caption2.copyWith(
+                                color: level.color,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.timer_rounded,
+                            size: 14,
+                            color: isDark
+                                ? IOSTheme.darkTertiaryLabel
+                                : IOSTheme.systemGray,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${ad['durationSeconds'] ?? 30}s',
+                            style: IOSTheme.caption2.copyWith(
+                              color: isDark
+                                  ? IOSTheme.darkTertiaryLabel
+                                  : IOSTheme.secondaryLabel,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.attach_money_rounded,
+                            size: 14,
+                            color: isDark
+                                ? IOSTheme.darkTertiaryLabel
+                                : IOSTheme.systemGray,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${(ad['reward'] ?? level.reward).toStringAsFixed(0)}',
+                            style: IOSTheme.caption2.copyWith(
+                              color: isDark
+                                  ? IOSTheme.darkTertiaryLabel
+                                  : IOSTheme.secondaryLabel,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  children: [
+                    Switch(
+                      value: isActive,
+                      onChanged: (value) => _toggleAdStatus(ad['id']),
+                      activeTrackColor: IOSTheme.systemGreen.withValues(
+                        alpha: 0.5,
+                      ),
+                      activeThumbColor: IOSTheme.systemGreen,
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(Icons.timer, size: 14, color: Colors.grey.shade600),
-                const SizedBox(width: 4),
-                Text(
-                  '${ad['durationSeconds'] ?? 30}s',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                ),
-                const SizedBox(width: 8),
-                Icon(Icons.attach_money, size: 14, color: Colors.grey.shade600),
-                const SizedBox(width: 4),
-                Text(
-                  '${ad['reward']?.toStringAsFixed(0) ?? level.reward.toStringAsFixed(0)} so\'m',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                ),
-              ],
-            ),
-          ],
-        ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Switch(
-              value: isActive,
-              onChanged: (value) => _toggleAdStatus(ad['id']),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit, size: 20),
-                  onPressed: () => _showEditAdDialog(ad),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, size: 20, color: Colors.red),
-                  onPressed: () => _deleteAd(ad['id']),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        InkWell(
+                          onTap: () => _showEditAdDialog(ad),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            child: Icon(
+                              Icons.edit_rounded,
+                              size: 18,
+                              color: IOSTheme.systemBlue,
+                            ),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () => _deleteAd(ad['id']),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            child: const Icon(
+                              Icons.delete_rounded,
+                              size: 18,
+                              color: IOSTheme.systemRed,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
+  // MARK: - Ad Details
+
+  void _showAdDetails(Map<String, dynamic> ad, bool isDark) {
+    HapticFeedback.mediumImpact();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          ad['title'] ?? 'Nomsiz reklama',
+          style: IOSTheme.title3.copyWith(
+            color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildDetailRow('Tavsif:', ad['description'] ?? 'N/A', isDark),
+            _buildDetailRow(
+              'Davomiyligi:',
+              '${ad['durationSeconds'] ?? 30} sekund',
+              isDark,
+            ),
+            _buildDetailRow(
+              'Mukofot:',
+              '${(ad['reward'] ?? 0).toStringAsFixed(0)} so\'m',
+              isDark,
+            ),
+            _buildDetailRow(
+              'Holati:',
+              (ad['isActive'] ?? true) ? 'Faol ✅' : 'Nofaol ❌',
+              isDark,
+            ),
+            if (ad['imageUrl'] != null)
+              _buildDetailRow('Rasm:', ad['imageUrl'], isDark),
+            if (ad['createdAt'] != null)
+              _buildDetailRow(
+                'Yaratilgan:',
+                DateFormat(
+                  'dd.MM.yyyy HH:mm',
+                ).format(DateTime.parse(ad['createdAt'])),
+                isDark,
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              _showEditAdDialog(ad);
+              Navigator.pop(context);
+            },
+            child: Text(
+              'Tahrirlash',
+              style: IOSTheme.footnote.copyWith(color: IOSTheme.systemBlue),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Yopish',
+              style: IOSTheme.footnote.copyWith(color: IOSTheme.systemBlue),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // MARK: - Actions
+
+  Future<bool> _confirmDeleteUser(dynamic user) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Foydalanuvchini o\'chirish'),
+            content: Text(
+              '${user.name} foydalanuvchini o\'chirmoqchimisiz? Bu amalni qaytarib bo\'lmaydi.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(
+                  'Bekor qilish',
+                  style: IOSTheme.footnote.copyWith(color: IOSTheme.systemBlue),
+                ),
+              ),
+              TextButton(
+                onPressed: () async {
+                  HapticFeedback.mediumImpact();
+                  // TODO: Implement delete user
+                  Navigator.pop(context, true);
+                },
+                child: Text(
+                  'O\'chirish',
+                  style: IOSTheme.footnote.copyWith(color: IOSTheme.systemRed),
+                ),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
   Future<void> _toggleAdStatus(String adId) async {
+    HapticFeedback.selectionClick();
     await _adStorageService.toggleAdStatus(adId);
     _loadData();
   }
 
   Future<void> _deleteAd(String adId) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reklamani o\'chirish'),
+        title: Text('Reklamani o\'chirish'),
         content: const Text('Bu reklamani o\'chirmoqchimisiz?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Bekor qilish'),
+            child: Text(
+              'Bekor qilish',
+              style: IOSTheme.footnote.copyWith(color: IOSTheme.systemBlue),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
+            child: Text(
               'O\'chirish',
-              style: TextStyle(color: Colors.red),
+              style: IOSTheme.footnote.copyWith(color: IOSTheme.systemRed),
             ),
           ),
         ],
@@ -406,17 +1269,69 @@ class _AdminScreenState extends State<AdminScreen>
     );
 
     if (confirm == true) {
+      HapticFeedback.mediumImpact();
       await _adStorageService.deleteAd(adId);
       _loadData();
     }
   }
 
   void _showAddAdDialog() {
+    HapticFeedback.mediumImpact();
     _showAdDialog();
   }
 
   void _showEditAdDialog(Map<String, dynamic> ad) {
+    HapticFeedback.selectionClick();
     _showAdDialog(ad: ad);
+  }
+
+  Widget _buildBulkActionsButton(bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark
+            ? IOSTheme.darkSecondarySystemGroupedBackground
+            : IOSTheme.systemBackground,
+        borderRadius: BorderRadius.circular(IOSTheme.radius24),
+        boxShadow: IOSTheme.mediumShadow,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              '${_selectedUserIds.length} ta tanlangan',
+              style: IOSTheme.headline,
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: IOSTheme.systemRed.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.delete_rounded),
+              color: IOSTheme.systemRed,
+              onPressed: () {
+                // TODO: Bulk delete
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      '${_selectedUserIds.length} ta foydalanuvchi o\'chiriladi',
+                    ),
+                    backgroundColor: IOSTheme.systemRed,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(IOSTheme.radius12),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showAdDialog({Map<String, dynamic>? ad}) {
@@ -444,15 +1359,21 @@ class _AdminScreenState extends State<AdminScreen>
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
           return AlertDialog(
-            title: Text(isEditing ? 'Reklamani tahrirlash' : 'Yangi reklama'),
+            title: Text(
+              isEditing ? 'Reklamani tahrirlash' : 'Yangi reklama',
+              style: IOSTheme.title3.copyWith(
+                color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+              ),
+            ),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     controller: titleController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Sarlavha *',
                       hintText: 'Masalan: Samsung Galaxy S24',
                     ),
@@ -525,15 +1446,24 @@ class _AdminScreenState extends State<AdminScreen>
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Bekor qilish'),
+                child: Text(
+                  'Bekor qilish',
+                  style: IOSTheme.footnote.copyWith(color: IOSTheme.systemBlue),
+                ),
               ),
               ElevatedButton(
                 onPressed: () async {
                   if (titleController.text.trim().isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Sarlavha kiritilishi shart!'),
-                        backgroundColor: Colors.red,
+                      SnackBar(
+                        content: const Text('Sarlavha kiritilishi shart!'),
+                        backgroundColor: IOSTheme.systemRed,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            IOSTheme.radius12,
+                          ),
+                        ),
                       ),
                     );
                     return;
@@ -570,7 +1500,11 @@ class _AdminScreenState extends State<AdminScreen>
                             ? 'Reklama yangilandi!'
                             : 'Reklama qo\'shildi!',
                       ),
-                      backgroundColor: Colors.green,
+                      backgroundColor: IOSTheme.systemGreen,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(IOSTheme.radius12),
+                      ),
                     ),
                   );
                 },
@@ -583,87 +1517,219 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: Colors.white),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
-          ),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white70, fontSize: 10),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showUserDetails(BuildContext context, dynamic user, dynamic wallet) {
+  void _showUserDetails(
+    BuildContext context,
+    dynamic user,
+    dynamic wallet,
+    bool isDark,
+  ) {
+    HapticFeedback.mediumImpact();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(user.name),
+        title: Text(
+          user.name ?? 'Noma\'lum',
+          style: IOSTheme.title3.copyWith(
+            color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildDetailRow('Email:', user.email),
-            _buildDetailRow('Telefon:', user.phone),
+            _buildDetailRow('Email:', user.email ?? 'N/A', isDark),
+            _buildDetailRow('Telefon:', user.phone ?? 'N/A', isDark),
             _buildDetailRow(
               'Balans:',
-              '${wallet?.balance.toStringAsFixed(0) ?? "0"} so\'m',
+              '${(wallet?.balance ?? 0).toStringAsFixed(0)} so\'m',
+              isDark,
             ),
-            _buildDetailRow('Reklamalar:', '${user.totalAdsWatched} ta'),
+            _buildDetailRow(
+              'Reklamalar:',
+              '${user.totalAdsWatched ?? 0} ta',
+              isDark,
+            ),
             _buildDetailRow(
               'Jami ishlangan:',
-              '${user.totalEarned.toStringAsFixed(0)} so\'m',
+              '${(user.totalEarned ?? 0).toStringAsFixed(0)} so\'m',
+              isDark,
             ),
-            _buildDetailRow('Premium:', user.isPremium ? 'Ha' : 'Yo\'q'),
-            if (user.isPremium)
+            _buildDetailRow(
+              'Premium:',
+              user.isPremium == true ? 'Ha ✅' : 'Yo\'q',
+              isDark,
+            ),
+            if (user.isPremium == true && user.premiumExpiry != null)
               _buildDetailRow(
                 'Muddati:',
                 DateFormat('dd.MM.yyyy').format(user.premiumExpiry),
+                isDark,
               ),
-            _buildDetailRow(
-              'Ro\'yxatdan o\'tgan:',
-              DateFormat('dd.MM.yyyy').format(user.createdAt),
-            ),
+            if (user.createdAt != null)
+              _buildDetailRow(
+                'Ro\'yxatdan o\'tgan:',
+                DateFormat('dd.MM.yyyy').format(user.createdAt),
+                isDark,
+              ),
           ],
         ),
         actions: [
           TextButton(
+            onPressed: () {
+              _editUser(user, wallet);
+              Navigator.pop(context);
+            },
+            child: Text(
+              'Tahrirlash',
+              style: IOSTheme.footnote.copyWith(color: IOSTheme.systemBlue),
+            ),
+          ),
+          TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Yopish'),
+            child: Text(
+              'Yopish',
+              style: IOSTheme.footnote.copyWith(color: IOSTheme.systemBlue),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  void _editUser(dynamic user, dynamic wallet) {
+    HapticFeedback.mediumImpact();
+    final nameController = TextEditingController(text: user.name ?? '');
+    final emailController = TextEditingController(text: user.email ?? '');
+    final phoneController = TextEditingController(text: user.phone ?? '');
+    bool isPremium = user.isPremium ?? false;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return AlertDialog(
+            title: Text(
+              'Foydalanuvchini tahrirlash',
+              style: IOSTheme.title3.copyWith(
+                color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+              ),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(labelText: 'Ism'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: emailController,
+                    decoration: const InputDecoration(labelText: 'Email'),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: phoneController,
+                    decoration: const InputDecoration(labelText: 'Telefon'),
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    title: const Text('Premium'),
+                    value: isPremium,
+                    onChanged: (value) {
+                      setDialogState(() => isPremium = value);
+                    },
+                    activeColor: IOSTheme.systemYellow,
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Bekor qilish',
+                  style: IOSTheme.footnote.copyWith(color: IOSTheme.systemBlue),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  // TODO: Save user changes
+                  HapticFeedback.mediumImpact();
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Foydalanuvchi yangilandi!'),
+                      backgroundColor: IOSTheme.systemGreen,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(IOSTheme.radius12),
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('Saqlash'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(width: 8),
-          Expanded(child: Text(value)),
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: IOSTheme.subhead.copyWith(
+                fontWeight: FontWeight.w600,
+                color: isDark
+                    ? IOSTheme.darkSecondaryLabel
+                    : IOSTheme.secondaryLabel,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: IOSTheme.subhead.copyWith(
+                color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+              ),
+            ),
+          ),
         ],
       ),
     );
+  }
+}
+
+// MARK: - Enums
+
+enum UserSortOption {
+  newest,
+  name,
+  earned,
+  adsWatched;
+
+  String get label {
+    switch (this) {
+      case UserSortOption.newest:
+        return 'Yangi';
+      case UserSortOption.name:
+        return 'Ism';
+      case UserSortOption.earned:
+        return 'Daromad';
+      case UserSortOption.adsWatched:
+        return 'Reklamalar';
+    }
   }
 }

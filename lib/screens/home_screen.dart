@@ -192,6 +192,253 @@ class _HomeTabState extends State<_HomeTab>
     );
   }
 
+  int _calculateTodayEarnings(UserModel? user) {
+    if (user == null) return 0;
+    // Bugungi reklamalardan earnings
+    final todayAds = user.dailyAdsWatched;
+    // Simple calculation - har bir ad uchun ~0.10
+    return (todayAds * 0.10).round();
+  }
+
+  int _getStreakDays(UserModel? user) {
+    if (user == null) return 0;
+    // Simple streak calculation - would need actual streak field in model
+    // For now, using total days since lastAdWatchDate
+    if (user.lastAdWatchDate == null) return 0;
+    final daysDiff = DateTime.now().difference(user.lastAdWatchDate!).inDays;
+    // If user watched today or yesterday, streak continues
+    if (daysDiff <= 1) {
+      // This is simplified - real implementation would track streak
+      return user.dailyAdsWatched > 0 ? (user.totalAdsWatched ~/ 10) + 1 : 0;
+    }
+    return 0;
+  }
+
+  Widget _buildQuickStatCard({
+    required IconData icon,
+    required String value,
+    required String label,
+    required Color color,
+    required bool isDark,
+    bool isStreak = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: isDark
+            ? IOSTheme.darkSecondarySystemGroupedBackground
+            : IOSTheme.systemBackground,
+        borderRadius: BorderRadius.circular(IOSTheme.radius12),
+        boxShadow: IOSTheme.smallShadow,
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: isStreak ? IOSTheme.systemOrange : color, size: 20),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: IOSTheme.title3.copyWith(
+              fontWeight: FontWeight.w700,
+              fontSize: 18,
+              color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: IOSTheme.caption1.copyWith(
+              color: isDark
+                  ? IOSTheme.darkSecondaryLabel
+                  : IOSTheme.secondaryLabel,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReferralBanner(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [IOSTheme.systemPurple, IOSTheme.systemPink],
+        ),
+        borderRadius: BorderRadius.circular(IOSTheme.radius16),
+        boxShadow: IOSTheme.mediumShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(IOSTheme.radius10),
+                ),
+                child: const Icon(
+                  Icons.card_giftcard_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Do\'stingizni taklif qiling!',
+                      style: IOSTheme.headline.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      '500 so\'m bonus oling',
+                      style: IOSTheme.footnote.copyWith(
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                HapticFeedback.mediumImpact();
+                // Navigate to profile to copy referral code
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Profil bo\'limida referral kodingizni oling',
+                      style: IOSTheme.subhead.copyWith(color: Colors.white),
+                    ),
+                    backgroundColor: IOSTheme.systemPurple,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(IOSTheme.radius12),
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.copy_rounded, size: 18),
+              label: Text(
+                'Referal kodim',
+                style: IOSTheme.footnote.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(IOSTheme.radius10),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: isDark
+            ? IOSTheme.darkSecondarySystemGroupedBackground
+            : IOSTheme.systemBackground,
+        borderRadius: BorderRadius.circular(IOSTheme.radius20),
+        boxShadow: IOSTheme.mediumShadow,
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF007AFF), Color(0xFF5856D6)],
+              ),
+            ),
+            child: const Icon(
+              Icons.play_circle_rounded,
+              size: 56,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Xush kelibsiz!',
+            style: IOSTheme.title2.copyWith(
+              color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Reklama ko\'rib pul ishlashni boshlang!\nHar bir reklama uchun darhol hisobga olinadi.',
+            style: IOSTheme.subhead.copyWith(
+              color: isDark
+                  ? IOSTheme.darkSecondaryLabel
+                  : IOSTheme.secondaryLabel,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                HapticFeedback.mediumImpact();
+                // Scroll to ad sections
+                _scrollController.animateTo(
+                  400,
+                  duration: IOSTheme.slowAnimation,
+                  curve: IOSTheme.iosSpring,
+                );
+              },
+              icon: const Icon(Icons.play_arrow_rounded),
+              label: const Text('Boshlash'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: IOSTheme.systemBlue,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(IOSTheme.radius12),
+                ),
+                textStyle: IOSTheme.headline.copyWith(color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AppProvider>();
@@ -210,14 +457,26 @@ class _HomeTabState extends State<_HomeTab>
             ? IOSTheme.darkSystemBackground
             : IOSTheme.systemBackground,
         child: CustomScrollView(
+          controller: _scrollController,
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // iOS Style Large Navigation Bar
+            // iOS Style Large Navigation Bar with Collapsed Title
             SliverAppBar(
-              expandedHeight: 180,
+              expandedHeight: _expandedHeight,
               floating: true,
               pinned: true,
               elevation: 0,
+              centerTitle: true,
+              title: AnimatedOpacity(
+                duration: IOSTheme.standardAnimation,
+                opacity: _isAppBarCollapsed ? 1.0 : 0.0,
+                child: Text(
+                  'Asosiy',
+                  style: IOSTheme.headline.copyWith(
+                    color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+                  ),
+                ),
+              ),
               backgroundColor: isDark
                   ? IOSTheme.darkSystemGroupedBackground
                   : IOSTheme.systemGroupedBackground,
@@ -342,6 +601,42 @@ class _HomeTabState extends State<_HomeTab>
                                 ],
                               ),
                             ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Quick Stats Row
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildQuickStatCard(
+                                  icon: Icons.visibility_rounded,
+                                  value: '${user?.dailyAdsWatched ?? 0}',
+                                  label: 'Bugun ko\'rildi',
+                                  color: IOSTheme.systemBlue,
+                                  isDark: isDark,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildQuickStatCard(
+                                  icon: Icons.attach_money_rounded,
+                                  value: '+${_calculateTodayEarnings(user)}',
+                                  label: 'Bugungi daromad',
+                                  color: IOSTheme.systemGreen,
+                                  isDark: isDark,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildQuickStatCard(
+                                  icon: Icons.local_fire_department_rounded,
+                                  value: '${_getStreakDays(user)}',
+                                  label: 'Kun streak',
+                                  color: IOSTheme.systemOrange,
+                                  isDark: isDark,
+                                  isStreak: true,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -573,6 +868,15 @@ class _HomeTabState extends State<_HomeTab>
                       ),
                     ).animate().fadeIn().slideY(),
                     const SizedBox(height: 8),
+                    // Referral Banner (if not referred)
+                    if (user?.referredBy == null || user!.referredBy!.isEmpty)
+                      _buildReferralBanner(isDark).animate().fadeIn().slideY(),
+                    if (user?.referredBy == null || user!.referredBy!.isEmpty)
+                      const SizedBox(height: 12),
+                    // Empty State for New Users
+                    if (user?.totalAdsWatched == 0)
+                      _buildEmptyState(isDark).animate().fadeIn().slideY(),
+                    if (user?.totalAdsWatched == 0) const SizedBox(height: 16),
                     // iOS Style Section Title
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
