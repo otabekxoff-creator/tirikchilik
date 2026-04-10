@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../theme/ios_theme.dart';
 import 'register_screen.dart';
 import 'home_screen.dart';
 
@@ -50,10 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (provider.error != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(provider.error!),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(provider.error!), backgroundColor: Colors.red),
       );
       provider.clearError();
     } else if (provider.isLoggedIn && mounted) {
@@ -69,106 +67,129 @@ class _LoginScreenState extends State<LoginScreen> {
     final provider = context.watch<AppProvider>();
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.blue.shade900, Colors.purple.shade900],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        shape: BoxShape.circle,
+      backgroundColor: IOSTheme.systemGroupedBackground,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // iOS Style App Icon
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: IOSTheme.premiumGradient,
                       ),
-                      child: const Icon(
-                        Icons.account_balance_wallet,
-                        size: 80,
-                        color: Colors.white,
-                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: IOSTheme.mediumShadow,
                     ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Tirikchilik',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                    child: const Icon(
+                      Icons.account_balance_wallet,
+                      size: 50,
+                      color: Colors.white,
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Reklama ko\'rib pul ishlang',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
-                      ),
+                  ),
+                  const SizedBox(height: 24),
+                  // App Name - iOS Style Large Title
+                  Text(
+                    'Tirikchilik',
+                    style: IOSTheme.largeTitle.copyWith(
+                      fontSize: 34,
+                      fontWeight: FontWeight.w700,
                     ),
-                    const SizedBox(height: 40),
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
+                  ),
+                  const SizedBox(height: 8),
+                  // Tagline - iOS Style Subhead
+                  Text(
+                    'Reklama ko\'rib pul ishlang',
+                    style: IOSTheme.subhead.copyWith(
+                      color: IOSTheme.secondaryLabel,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  // iOS Style Card
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: IOSTheme.iosCard,
+                    child: Column(
+                      children: [
+                        // iOS Style Segmented Control
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: IOSTheme.systemGray6,
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
+                          child: Row(
                             children: [
                               Expanded(
                                 child: GestureDetector(
-                                  onTap: () => setState(() => _isAdminLogin = false),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                  onTap: () =>
+                                      setState(() => _isAdminLogin = false),
+                                  child: AnimatedContainer(
+                                    duration: IOSTheme.quickAnimation,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 10,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: !_isAdminLogin ? Colors.blue : Colors.grey.shade200,
-                                      borderRadius: BorderRadius.circular(10),
+                                      color: !_isAdminLogin
+                                          ? IOSTheme.systemBackground
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: !_isAdminLogin
+                                          ? IOSTheme.smallShadow
+                                          : [],
                                     ),
                                     child: Text(
                                       'Foydalanuvchi',
                                       textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: !_isAdminLogin ? Colors.white : Colors.black,
-                                        fontWeight: FontWeight.bold,
+                                      style: IOSTheme.subhead.copyWith(
+                                        color: !_isAdminLogin
+                                            ? IOSTheme.label
+                                            : IOSTheme.secondaryLabel,
+                                        fontWeight: !_isAdminLogin
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 4),
                               Expanded(
                                 child: GestureDetector(
-                                  onTap: () => setState(() => _isAdminLogin = true),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                  onTap: () =>
+                                      setState(() => _isAdminLogin = true),
+                                  child: AnimatedContainer(
+                                    duration: IOSTheme.quickAnimation,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 10,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: _isAdminLogin ? Colors.red : Colors.grey.shade200,
-                                      borderRadius: BorderRadius.circular(10),
+                                      color: _isAdminLogin
+                                          ? IOSTheme.systemRed.withValues(
+                                              alpha: 0.15,
+                                            )
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
                                       'Admin',
                                       textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: _isAdminLogin ? Colors.white : Colors.black,
-                                        fontWeight: FontWeight.bold,
+                                      style: IOSTheme.subhead.copyWith(
+                                        color: _isAdminLogin
+                                            ? IOSTheme.systemRed
+                                            : IOSTheme.secondaryLabel,
+                                        fontWeight: _isAdminLogin
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
                                       ),
                                     ),
                                   ),
@@ -176,91 +197,181 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 24),
-                          TextFormField(
-                            controller: _emailController,
-                            decoration: InputDecoration(
-                              labelText: _isAdminLogin ? 'Login' : 'Email yoki Telefon',
-                              prefixIcon: const Icon(Icons.person),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                        ),
+                        const SizedBox(height: 24),
+                        // iOS Style TextFields
+                        TextFormField(
+                          controller: _emailController,
+                          style: IOSTheme.body,
+                          decoration: InputDecoration(
+                            hintText: _isAdminLogin
+                                ? 'Login'
+                                : 'Email yoki Telefon',
+                            hintStyle: IOSTheme.body.copyWith(
+                              color: IOSTheme.placeholderText,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.person,
+                              color: IOSTheme.secondaryLabel,
+                              size: 22,
+                            ),
+                            filled: true,
+                            fillColor: IOSTheme.systemGray6,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: IOSTheme.systemBlue,
+                                width: 1.5,
                               ),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Maydonni to\'ldiring';
-                              }
-                              return null;
-                            },
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
                           ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _passwordController,
-                            obscureText: !_isPasswordVisible,
-                            decoration: InputDecoration(
-                              labelText: 'Parol',
-                              prefixIcon: const Icon(Icons.lock),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _isPasswordVisible = !_isPasswordVisible;
-                                  });
-                                },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Maydonni to\'ldiring';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: !_isPasswordVisible,
+                          style: IOSTheme.body,
+                          decoration: InputDecoration(
+                            hintText: 'Parol',
+                            hintStyle: IOSTheme.body.copyWith(
+                              color: IOSTheme.placeholderText,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.lock,
+                              color: IOSTheme.secondaryLabel,
+                              size: 22,
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: IOSTheme.secondaryLabel,
+                                size: 22,
                               ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                            ),
+                            filled: true,
+                            fillColor: IOSTheme.systemGray6,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: IOSTheme.systemBlue,
+                                width: 1.5,
                               ),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Parolni kiriting';
-                              }
-                              return null;
-                            },
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
                           ),
-                          const SizedBox(height: 24),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed: provider.isLoading ? null : _login,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: _isAdminLogin ? Colors.red : Colors.blue,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Parolni kiriting';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        // iOS Style Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: provider.isLoading ? null : _login,
+                            style: ElevatedButton.styleFrom(
+                              elevation: 0,
+                              backgroundColor: _isAdminLogin
+                                  ? IOSTheme.systemRed
+                                  : IOSTheme.systemBlue,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              child: provider.isLoading
-                                  ? const CircularProgressIndicator(color: Colors.white)
-                                  : const Text(
-                                      'Kirish',
-                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                            ),
+                            child: provider.isLoading
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
                                     ),
-                            ),
+                                  )
+                                : Text(
+                                    'Kirish',
+                                    style: IOSTheme.headline.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                    if (!_isAdminLogin)
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                          );
-                        },
-                        child: const Text(
-                          'Hisob yo\'qmi? Ro\'yxatdan o\'ting',
-                          style: TextStyle(color: Colors.white),
+                  ),
+                  const SizedBox(height: 20),
+                  // iOS Style Text Button
+                  if (!_isAdminLogin)
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const RegisterScreen(),
+                          ),
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: IOSTheme.systemBlue,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
                         ),
                       ),
-                  ],
-                ),
+                      child: Text(
+                        'Hisob yo\'qmi? Ro\'yxatdan o\'ting',
+                        style: IOSTheme.body.copyWith(
+                          color: IOSTheme.systemBlue,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
