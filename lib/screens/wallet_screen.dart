@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/app_provider.dart';
 import '../models/wallet_model.dart';
+import '../theme/ios_theme.dart';
 
 class WalletScreen extends StatelessWidget {
   const WalletScreen({super.key});
@@ -13,134 +14,171 @@ class WalletScreen extends StatelessWidget {
     final wallet = provider.wallet;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Hamyon'),
-        backgroundColor: Colors.blue.shade700,
-        foregroundColor: Colors.white,
-      ),
-      body: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Colors.blue.shade700, Colors.purple.shade700],
+      backgroundColor: IOSTheme.systemGroupedBackground,
+      body: CustomScrollView(
+        slivers: [
+          // iOS Large Navigation Bar
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: true,
+            pinned: true,
+            backgroundColor: IOSTheme.systemGroupedBackground,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back_ios, color: IOSTheme.systemBlue),
+              onPressed: () => Navigator.pop(context),
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(
+                'Hamyon',
+                style: IOSTheme.largeTitle.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: IOSTheme.label,
+                ),
               ),
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
+              centerTitle: true,
+            ),
+          ),
+          // Balance Card
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: IOSTheme.blueGradient,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: IOSTheme.cardShadow,
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      'Jami balans',
+                      style: IOSTheme.subhead.copyWith(
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${wallet?.balance.toStringAsFixed(0) ?? "0"} so\'m',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 42,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'SF Pro Display',
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildIOSActionButton(
+                          icon: Icons.add,
+                          label: 'To\'ldirish',
+                          color: IOSTheme.systemGreen,
+                          onTap: () => _showDepositDialog(context),
+                        ),
+                        _buildIOSActionButton(
+                          icon: Icons.arrow_downward,
+                          label: 'Yechish',
+                          color: IOSTheme.systemOrange,
+                          onTap: () => _showWithdrawDialog(context),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-            child: SafeArea(
-              child: Column(
+          ),
+          // Transactions Section
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Jami balans',
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
                   Text(
-                    '${wallet?.balance.toStringAsFixed(0) ?? "0"} so\'m',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 42,
-                      fontWeight: FontWeight.bold,
+                    'Tranzaksiyalar',
+                    style: IOSTheme.headline.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildActionButton(
-                        context,
-                        Icons.add,
-                        'To\'ldirish',
-                        Colors.green,
-                        () => _showDepositDialog(context),
+                  TextButton(
+                    onPressed: () {},
+                    style: TextButton.styleFrom(
+                      foregroundColor: IOSTheme.systemBlue,
+                    ),
+                    child: Text(
+                      'Barchasi',
+                      style: IOSTheme.body.copyWith(
+                        color: IOSTheme.systemBlue,
+                        fontWeight: FontWeight.w500,
                       ),
-                      _buildActionButton(
-                        context,
-                        Icons.arrow_downward,
-                        'Yechish',
-                        Colors.orange,
-                        () => _showWithdrawDialog(context),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Tranzaksiyalar',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                TextButton(onPressed: () {}, child: const Text('Barchasi')),
-              ],
+          // Transaction List
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                if (wallet?.transactions.isEmpty ?? true) {
+                  return _buildEmptyState();
+                }
+                final tx = wallet!.transactions[index];
+                return _buildIOSTransactionItem(tx);
+              },
+              childCount: wallet?.transactions.isEmpty ?? true
+                  ? 1
+                  : wallet!.transactions.length,
             ),
           ),
-          Expanded(
-            child: wallet?.transactions.isEmpty ?? true
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.receipt_long,
-                          size: 64,
-                          color: Colors.grey.shade300,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Hali tranzaksiyalar yo\'q',
-                          style: TextStyle(color: Colors.grey.shade600),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: wallet!.transactions.length,
-                    itemBuilder: (context, index) {
-                      final tx = wallet.transactions[index];
-                      return _buildTransactionItem(tx);
-                    },
-                  ),
-          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
       ),
     );
   }
 
-  Widget _buildActionButton(
-    BuildContext context,
-    IconData icon,
-    String label,
-    Color color,
-    VoidCallback onTap,
-  ) {
+  Widget _buildIOSActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: Colors.white),
-            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(height: 8),
             Text(
               label,
-              style: const TextStyle(color: Colors.white, fontSize: 12),
+              style: IOSTheme.subhead.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
@@ -148,34 +186,74 @@ class WalletScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTransactionItem(Transaction tx) {
+  Widget _buildEmptyState() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: IOSTheme.systemBackground,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: IOSTheme.systemGray6,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(
+              Icons.receipt_long_outlined,
+              size: 48,
+              color: IOSTheme.secondaryLabel,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Hali tranzaksiyalar yo\'q',
+            style: IOSTheme.subhead.copyWith(color: IOSTheme.secondaryLabel),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIOSTransactionItem(Transaction tx) {
     final isPositive =
         tx.type == TransactionType.earned || tx.type == TransactionType.bonus;
-    final color = isPositive ? Colors.green : Colors.red;
+    final color = isPositive ? IOSTheme.systemGreen : IOSTheme.systemRed;
     final icon = _getTransactionIcon(tx.type);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: IOSTheme.systemBackground,
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: ListTile(
         leading: Container(
-          padding: const EdgeInsets.all(8),
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: color),
+          child: Icon(icon, color: color, size: 24),
         ),
-        title: Text(tx.description),
+        title: Text(
+          tx.description,
+          style: IOSTheme.body.copyWith(fontWeight: FontWeight.w500),
+        ),
         subtitle: Text(
           DateFormat('dd.MM.yyyy HH:mm').format(tx.date),
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+          style: IOSTheme.footnote.copyWith(color: IOSTheme.secondaryLabel),
         ),
         trailing: Text(
-          '${isPositive ? '+' : '-'}${tx.amount.toStringAsFixed(0)} so\'m',
-          style: TextStyle(
+          '${isPositive ? '+' : '-'}${tx.amount.toStringAsFixed(0)}',
+          style: IOSTheme.body.copyWith(
             color: color,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -185,7 +263,7 @@ class WalletScreen extends StatelessWidget {
   IconData _getTransactionIcon(TransactionType type) {
     switch (type) {
       case TransactionType.earned:
-        return Icons.play_circle;
+        return Icons.play_circle_outline;
       case TransactionType.bonus:
         return Icons.card_giftcard;
       case TransactionType.withdrawal:
@@ -199,12 +277,26 @@ class WalletScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Balansni to\'ldirish'),
-        content: const Text('Bu funksiya tez orada qo\'shiladi.'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Balansni to\'ldirish',
+          style: IOSTheme.headline.copyWith(fontWeight: FontWeight.w600),
+        ),
+        content: Text(
+          'Bu funksiya tez orada qo\'shiladi.',
+          style: IOSTheme.body.copyWith(color: IOSTheme.secondaryLabel),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            style: TextButton.styleFrom(foregroundColor: IOSTheme.systemBlue),
+            child: Text(
+              'OK',
+              style: IOSTheme.body.copyWith(
+                color: IOSTheme.systemBlue,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -220,45 +312,106 @@ class WalletScreen extends StatelessWidget {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Pul yechish'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: amountController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Summa',
-                  prefixText: 'so\'m ',
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Pul yechish',
+            style: IOSTheme.headline.copyWith(fontWeight: FontWeight.w600),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: amountController,
+                  keyboardType: TextInputType.number,
+                  style: IOSTheme.body,
+                  decoration: InputDecoration(
+                    labelText: 'Summa',
+                    labelStyle: IOSTheme.subhead.copyWith(
+                      color: IOSTheme.secondaryLabel,
+                    ),
+                    prefixText: 'so\'m ',
+                    prefixStyle: IOSTheme.body.copyWith(
+                      color: IOSTheme.systemBlue,
+                    ),
+                    filled: true,
+                    fillColor: IOSTheme.systemBackground,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: IOSTheme.systemBlue,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: selectedMethod,
-                decoration: const InputDecoration(labelText: 'To\'lov turi'),
-                items: ['Payme', 'Click', 'UzCard', 'Humo']
-                    .map(
-                      (method) =>
-                          DropdownMenuItem(value: method, child: Text(method)),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  setState(() => selectedMethod = value!);
-                },
-              ),
-            ],
+                const SizedBox(height: 16),
+                Container(
+                  decoration: BoxDecoration(
+                    color: IOSTheme.systemBackground,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: DropdownButtonFormField<String>(
+                    initialValue: selectedMethod,
+                    decoration: InputDecoration(
+                      labelText: 'To\'lov turi',
+                      labelStyle: IOSTheme.subhead.copyWith(
+                        color: IOSTheme.secondaryLabel,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    style: IOSTheme.body,
+                    items: ['Payme', 'Click', 'UzCard', 'Humo']
+                        .map(
+                          (method) => DropdownMenuItem(
+                            value: method,
+                            child: Text(method, style: IOSTheme.body),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() => selectedMethod = value!);
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Bekor'),
+              style: TextButton.styleFrom(foregroundColor: IOSTheme.systemRed),
+              child: Text(
+                'Bekor',
+                style: IOSTheme.body.copyWith(color: IOSTheme.systemRed),
+              ),
             ),
             ElevatedButton(
               onPressed: () async {
                 final amount = double.tryParse(amountController.text) ?? 0;
                 if (amount <= 0) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Noto\'g\'ri summa')),
+                    SnackBar(
+                      content: Text(
+                        'Noto\'g\'ri summa',
+                        style: IOSTheme.subhead.copyWith(color: Colors.white),
+                      ),
+                      backgroundColor: IOSTheme.systemRed,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   );
                   return;
                 }
@@ -270,12 +423,33 @@ class WalletScreen extends StatelessWidget {
                       success
                           ? 'Pul muvaffaqiyatli yechildi'
                           : 'Balans yetarli emas',
+                      style: IOSTheme.subhead.copyWith(color: Colors.white),
                     ),
-                    backgroundColor: success ? Colors.green : Colors.red,
+                    backgroundColor: success
+                        ? IOSTheme.systemGreen
+                        : IOSTheme.systemRed,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 );
               },
-              child: const Text('Yechish'),
+              style: ElevatedButton.styleFrom(
+                elevation: 0,
+                backgroundColor: IOSTheme.systemBlue,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'Yechish',
+                style: IOSTheme.body.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         ),

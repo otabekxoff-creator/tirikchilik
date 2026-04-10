@@ -52,10 +52,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (provider.error != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(provider.error!, style: IOSTheme.subhead.copyWith(color: Colors.white)),
+          content: Text(
+            provider.error!,
+            style: IOSTheme.subhead.copyWith(color: Colors.white),
+          ),
           backgroundColor: IOSTheme.systemRed,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
       provider.clearError();
@@ -65,10 +70,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
           : 'Ro\'yxatdan o\'tish muvaffaqiyatli! Endi kirishingiz mumkin.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message, style: IOSTheme.subhead.copyWith(color: Colors.white)),
+          content: Text(
+            message,
+            style: IOSTheme.subhead.copyWith(color: Colors.white),
+          ),
           backgroundColor: IOSTheme.systemGreen,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
       Navigator.pop(context);
@@ -240,7 +250,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             _hasReferralCode = value;
                           });
                         },
-                        activeColor: IOSTheme.systemBlue,
+                        activeThumbColor: IOSTheme.systemBlue,
                       ),
                     ],
                   ),
@@ -265,11 +275,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.info,
-                          color: IOSTheme.systemGreen,
-                          size: 18,
-                        ),
+                        Icon(Icons.info, color: IOSTheme.systemGreen, size: 18),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
@@ -297,7 +303,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
                     ),
                     child: provider.isLoading
                         ? const SizedBox(
@@ -359,11 +368,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: IOSTheme.body.copyWith(color: IOSTheme.placeholderText),
-        prefixIcon: Icon(
-          prefixIcon,
-          color: IOSTheme.secondaryLabel,
-          size: 22,
-        ),
+        prefixIcon: Icon(prefixIcon, color: IOSTheme.secondaryLabel, size: 22),
         filled: true,
         fillColor: IOSTheme.systemBackground,
         border: OutlineInputBorder(
@@ -376,17 +381,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: IOSTheme.systemBlue,
-            width: 1.5,
-          ),
+          borderSide: const BorderSide(color: IOSTheme.systemBlue, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: IOSTheme.systemRed,
-            width: 1.5,
-          ),
+          borderSide: const BorderSide(color: IOSTheme.systemRed, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -439,17 +438,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: IOSTheme.systemBlue,
-            width: 1.5,
-          ),
+          borderSide: const BorderSide(color: IOSTheme.systemBlue, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: IOSTheme.systemRed,
-            width: 1.5,
-          ),
+          borderSide: const BorderSide(color: IOSTheme.systemRed, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,

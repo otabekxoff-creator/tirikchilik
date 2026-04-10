@@ -5,6 +5,7 @@ import 'package:confetti/confetti.dart';
 import '../models/ad_model.dart';
 import '../providers/app_provider.dart';
 import '../services/ad_service.dart';
+import '../theme/ios_theme.dart';
 
 class WatchAdScreen extends StatefulWidget {
   final AdLevel level;
@@ -36,15 +37,12 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
   }
 
   Future<void> _loadAd() async {
-    // Try to get a custom ad from admin
     final customAds = await _adService.getAvailableAds(widget.level);
 
     if (customAds.isNotEmpty) {
-      // Pick a random custom ad
       _currentAd = customAds[DateTime.now().millisecond % customAds.length];
       _totalDuration = _currentAd!['durationSeconds'] ?? 30;
     } else {
-      // Fallback to default duration
       _totalDuration = _getDefaultDuration();
     }
 
@@ -108,7 +106,10 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
       return Scaffold(
         backgroundColor: Colors.black,
         body: Center(
-          child: CircularProgressIndicator(color: widget.level.color),
+          child: CircularProgressIndicator(
+            color: widget.level.color,
+            strokeWidth: 2,
+          ),
         ),
       );
     }
@@ -116,8 +117,7 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
     final provider = context.watch<AppProvider>();
     final double reward;
     if (_currentAd != null) {
-      final baseReward = (_currentAd!['reward'] ?? widget.level.reward)
-          .toDouble();
+      final baseReward = (_currentAd!['reward'] ?? widget.level.reward).toDouble();
       reward = provider.isPremium ? baseReward * 1.5 : baseReward;
     } else {
       reward = provider.isPremium
@@ -132,14 +132,20 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
           SafeArea(
             child: Column(
               children: [
-                // Top Bar
+                // iOS Style Top Bar
                 Container(
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white, size: 22),
+                          onPressed: () => Navigator.pop(context),
+                        ),
                       ),
                       const Spacer(),
                       Container(
@@ -148,9 +154,9 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: widget.level.color.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: widget.level.color),
+                          color: widget.level.color.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: widget.level.color, width: 1.5),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -158,14 +164,16 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
                             Icon(
                               widget.level.icon,
                               color: widget.level.color,
-                              size: 16,
+                              size: 14,
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 6),
                             Text(
                               widget.level.label,
                               style: TextStyle(
                                 color: widget.level.color,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                fontFamily: 'SF Pro Display',
                               ),
                             ),
                           ],
@@ -177,7 +185,7 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
                   ),
                 ),
 
-                // Timer
+                // iOS Style Timer
                 if (_isWatching)
                   Container(
                     padding: const EdgeInsets.all(20),
@@ -189,23 +197,26 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
                             color: Colors.white,
                             fontSize: 72,
                             fontWeight: FontWeight.bold,
+                            fontFamily: 'SF Pro Display',
                           ),
                         ),
-                        const Text(
+                        Text(
                           'soniya qoldi',
-                          style: TextStyle(color: Colors.white70, fontSize: 16),
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 16,
+                            fontFamily: 'SF Pro Display',
+                          ),
                         ),
                         const SizedBox(height: 20),
-                        LinearProgressIndicator(
-                          value:
-                              (_totalDuration - _secondsRemaining) /
-                              _totalDuration,
-                          backgroundColor: Colors.grey.shade800,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            widget.level.color,
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: LinearProgressIndicator(
+                            value: (_totalDuration - _secondsRemaining) / _totalDuration,
+                            backgroundColor: IOSTheme.systemGray5,
+                            valueColor: AlwaysStoppedAnimation<Color>(widget.level.color),
+                            minHeight: 8,
                           ),
-                          minHeight: 8,
-                          borderRadius: BorderRadius.circular(4),
                         ),
                       ],
                     ),
@@ -217,33 +228,66 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
                     child: _isCompleted
                         ? _buildSuccessView(reward)
                         : _isWatching
-                        ? _buildAdView()
-                        : _buildStartView(reward),
+                            ? _buildAdView()
+                            : _buildStartView(reward),
                   ),
                 ),
 
-                // Bottom Info
+                // iOS Style Bottom Info
                 Container(
                   padding: const EdgeInsets.all(20),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.attach_money, color: Colors.amber),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: IOSTheme.systemOrange.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Icons.attach_money,
+                          color: IOSTheme.systemOrange,
+                          size: 20,
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         '+${reward.toStringAsFixed(2)}',
                         style: const TextStyle(
-                          color: Colors.amber,
+                          color: Colors.white,
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
+                          fontFamily: 'SF Pro Display',
                         ),
                       ),
                       if (provider.isPremium) ...[
                         const SizedBox(width: 8),
-                        const Icon(
-                          Icons.workspace_premium,
-                          color: Colors.amber,
-                          size: 20,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: IOSTheme.goldGradient[0].withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.workspace_premium,
+                                color: Colors.amber,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'x1.5',
+                                style: TextStyle(
+                                  color: Colors.amber.withValues(alpha: 0.9),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ],
@@ -283,13 +327,14 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          padding: const EdgeInsets.all(40),
+          width: 140,
+          height: 140,
           decoration: BoxDecoration(
-            color: widget.level.color.withOpacity(0.2),
+            color: widget.level.color.withValues(alpha: 0.2),
             shape: BoxShape.circle,
             border: Border.all(color: widget.level.color, width: 3),
           ),
-          child: Icon(widget.level.icon, size: 80, color: widget.level.color),
+          child: Icon(widget.level.icon, size: 60, color: widget.level.color),
         ),
         const SizedBox(height: 32),
         Text(
@@ -298,12 +343,17 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
             color: widget.level.color,
             fontSize: 28,
             fontWeight: FontWeight.bold,
+            fontFamily: 'SF Pro Display',
           ),
         ),
         const SizedBox(height: 16),
         Text(
           'Reklama davomiyligi: $_totalDuration soniya',
-          style: const TextStyle(color: Colors.white70, fontSize: 16),
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 16,
+            fontFamily: 'SF Pro Display',
+          ),
         ),
         const SizedBox(height: 8),
         Text(
@@ -312,6 +362,7 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
             color: Colors.amber,
             fontSize: 20,
             fontWeight: FontWeight.bold,
+            fontFamily: 'SF Pro Display',
           ),
         ),
         const SizedBox(height: 40),
@@ -320,14 +371,19 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
           style: ElevatedButton.styleFrom(
             backgroundColor: widget.level.color,
             foregroundColor: Colors.white,
+            elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(16),
             ),
           ),
-          child: const Text(
+          child: Text(
             'REKLAMANI KO\'RISH',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              fontFamily: 'SF Pro Display',
+            ),
           ),
         ),
       ],
@@ -343,8 +399,8 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
       margin: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.grey.shade900,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: widget.level.color.withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: widget.level.color.withValues(alpha: 0.5)),
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -368,7 +424,7 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
-                        color: widget.level.color.withOpacity(0.2),
+                        color: widget.level.color.withValues(alpha: 0.2),
                         child: Icon(
                           Icons.image_not_supported,
                           size: 60,
@@ -381,9 +437,10 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
               )
             else
               Container(
-                padding: const EdgeInsets.all(30),
+                width: 120,
+                height: 120,
                 decoration: BoxDecoration(
-                  color: widget.level.color.withOpacity(0.2),
+                  color: widget.level.color.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -402,6 +459,7 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
                   color: Colors.white,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
+                  fontFamily: 'SF Pro Display',
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -413,25 +471,41 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
                   adDescription,
-                  style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                  style: TextStyle(
+                    color: Colors.grey.shade400,
+                    fontSize: 14,
+                    fontFamily: 'SF Pro Display',
+                  ),
                   textAlign: TextAlign.center,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
             const SizedBox(height: 20),
-            Text(
-              'Reklama ko\'rilmoqda...',
-              style: TextStyle(
-                color: widget.level.color,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: widget.level.color.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Reklama ko\'rilmoqda...',
+                style: TextStyle(
+                  color: widget.level.color,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: 'SF Pro Display',
+                ),
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Ekrandan chiqmang!',
-              style: TextStyle(color: Colors.amber, fontSize: 14),
+              style: TextStyle(
+                color: Colors.amber.withValues(alpha: 0.9),
+                fontSize: 14,
+                fontFamily: 'SF Pro Display',
+              ),
             ),
             const SizedBox(height: 20),
           ],
@@ -445,12 +519,20 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          padding: const EdgeInsets.all(40),
+          width: 120,
+          height: 120,
           decoration: const BoxDecoration(
             color: Colors.green,
             shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.green,
+                blurRadius: 20,
+                spreadRadius: 5,
+              ),
+            ],
           ),
-          child: const Icon(Icons.check, size: 80, color: Colors.white),
+          child: const Icon(Icons.check, size: 60, color: Colors.white),
         ),
         const SizedBox(height: 32),
         const Text(
@@ -459,6 +541,7 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
             color: Colors.white,
             fontSize: 28,
             fontWeight: FontWeight.bold,
+            fontFamily: 'SF Pro Display',
           ),
         ),
         const SizedBox(height: 16),
@@ -468,6 +551,7 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
             color: Colors.amber,
             fontSize: 24,
             fontWeight: FontWeight.bold,
+            fontFamily: 'SF Pro Display',
           ),
         ),
         const SizedBox(height: 40),
@@ -477,14 +561,24 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: Colors.grey.shade800,
                 foregroundColor: Colors.white,
+                elevation: 0,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
                   vertical: 16,
                 ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-              child: const Text('YOPISH'),
+              child: const Text(
+                'YOPISH',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'SF Pro Display',
+                ),
+              ),
             ),
             const SizedBox(width: 16),
             ElevatedButton(
@@ -498,12 +592,22 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: widget.level.color,
                 foregroundColor: Colors.white,
+                elevation: 0,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
                   vertical: 16,
                 ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-              child: const Text('YANA KO\'RISH'),
+              child: const Text(
+                'YANA KO\'RISH',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'SF Pro Display',
+                ),
+              ),
             ),
           ],
         ),

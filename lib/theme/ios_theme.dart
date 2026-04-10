@@ -69,6 +69,10 @@ class IOSTheme {
     Color(0xFF34C759),
     Color(0xFF30D158),
   ];
+  static const List<Color> blueGradient = [
+    Color(0xFF007AFF),
+    Color(0xFF5856D6),
+  ];
 
   // MARK: - Typography (iOS 17/18 Style)
   static const String fontFamily = '.SF Pro Display';
@@ -205,6 +209,14 @@ class IOSTheme {
       color: Colors.black.withValues(alpha: 0.12),
       blurRadius: 24,
       offset: const Offset(0, 8),
+    ),
+  ];
+
+  static List<BoxShadow> get cardShadow => [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.08),
+      blurRadius: 20,
+      offset: const Offset(0, 4),
     ),
   ];
 
