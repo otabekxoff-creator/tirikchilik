@@ -1,0 +1,94 @@
+{
+  "@@locale": "uz",
+  "appName": "Tirikchilik",
+  "appDescription": "Reklama ko'rib pul ishlash ilovasi",
+  
+  "@appName": {
+    "description": "The name of the application"
+  },
+  "@appDescription": {
+    "description": "Application description"
+  },
+
+  "login": "Kirish",
+  "register": "Ro'yxatdan o'tish",
+  "logout": "Chiqish",
+  "email": "Email",
+  "password": "Parol",
+  "name": "Ism",
+  "phone": "Telefon",
+  "confirmPassword": "Parolni tasdiqlang",
+  "referralCode": "Taklif kodi",
+  "loginTitle": "Tizimga kirish",
+  "registerTitle": "Ro'yxatdan o'tish",
+  "noAccount": "Akkauntingiz yo'qmi?",
+  "hasAccount": "Akkauntingiz bormi?",
+  "loginButton": "Kirish",
+  "registerButton": "Ro'yxatdan o'tish",
+  "forgotPassword": "Parolni unutdingizmi?",
+
+  "home": "Bosh sahifa",
+  "wallet": "Hamyon",
+  "profile": "Profil",
+  "admin": "Admin",
+  "leaderboard": "Liderlar",
+
+  "watchAd": "Reklama ko'rish",
+  "watchAdEarn": "Reklama ko'rib ishlang",
+  "dailyAdsWatched": "Kunlik ko'rilgan reklamar",
+  "totalEarned": "Jami ishlangan",
+  "totalAdsWatched": "Jami ko'rilgan reklamar",
+  "balance": "Balans",
+  "pendingBalance": "Kutilayotgan balans",
+  "deposit": "Hisobni to'ldirish",
+  "withdraw": "Yechib olish",
+  "transactionHistory": "Tranzaksiyalar tarixi",
+
+  "upgradeToPremium": "Premium ga o'tish",
+  "premiumBenefits": "Premium imtiyozlari",
+  "dailyAdLimit": "Kunlik reklama limiti",
+  "earnMore": "Ko'proq ishlang",
+  "yourReferralCode": "Sizning taklif kodingiz",
+  "shareAndEarn": "Do'stlaringizni taklif qiling va ishlang",
+
+  "loading": "Yuklanmoqda...",
+  "error": "Xatolik",
+  "success": "Muvaffaqiyatli",
+  "cancel": "Bekor qilish",
+  "save": "Saqlash",
+  "delete": "O'chirish",
+  "edit": "Tahrirlash",
+  "confirm": "Tasdiqlash",
+  "back": "Orqaga",
+  "next": "Keyingi",
+
+  "noInternet": "Internet aloqasi yo'q",
+  "somethingWentWrong": "Nimadir xato ketdi",
+  "tryAgain": "Qayta urinib ko'ring",
+
+  "welcome": "Xush kelibsiz!",
+  "startWatching": "Ko'rishni boshlang",
+  "keepWatching": "Ko'rishda davom eting",
+
+  "copyReferralCode": "Taklif kodini nusxalash",
+  "referralCodeCopied": "Taklif kodi nusxalandi",
+
+  "adminPanel": "Admin paneli",
+  "manageUsers": "Foydalanuvchilarni boshqarish",
+  "manageAds": "Reklamalarni boshqarish",
+  "totalUsers": "Jami foydalanuvchilar",
+  "totalPremiumUsers": "Jami premium foydalanuvchilar",
+  "totalTransactions": "Jami tranzaksiyalar",
+  "userManagement": "Foydalanuvchi boshqaruvi",
+  "adManagement": "Reklama boshqaruvi",
+
+  "darkMode": "Qorong'i rejim",
+  "lightMode": "Yorug' rejim",
+  "toggleTheme": "Mavzuni o'zgartirish",
+
+  "language": "Til",
+  "uzbek": "O'zbekcha",
+  "russian": "Русский",
+  "english": "English",
+  "selectLanguage": "Tilni tanlang"
+}

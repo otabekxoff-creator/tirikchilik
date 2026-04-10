@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/app_provider.dart';
 import '../theme/ios_theme.dart';
+import '../routing/app_router.dart';
 import 'register_screen.dart';
-import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -55,10 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       provider.clearError();
     } else if (provider.isLoggedIn && mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      context.go(AppRoutes.home);
     }
   }
 

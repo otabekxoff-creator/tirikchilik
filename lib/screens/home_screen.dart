@@ -3,31 +3,26 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:go_router/go_router.dart';
+import 'dart:async';
 import '../providers/app_provider.dart';
 import '../models/ad_model.dart';
 import '../models/user_model.dart';
 import '../theme/ios_theme.dart';
-import 'wallet_screen.dart';
-import 'profile_screen.dart';
-import 'admin_screen.dart';
+import '../routing/app_router.dart';
 import 'watch_ad_screen.dart';
 import 'leaderboard_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final Widget child;
+  const HomeScreen({super.key, required this.child});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
-
-  void _onTabTap(int index) {
-    HapticFeedback.selectionClick();
-    setState(() => _selectedIndex = index);
-  }
-
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AppProvider>();
@@ -38,13 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final screens = [
-      const _HomeTab(),
-      const WalletScreen(),
-      const ProfileScreen(),
-      if (user.isAdmin) const AdminScreen(),
-    ];
-
+    // Tablar ro'yxati
     final navItems = [
       const BottomNavigationBarItem(
         icon: Icon(Icons.home_rounded),
@@ -69,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: isDark
           ? IOSTheme.darkSystemGroupedBackground
           : IOSTheme.systemGroupedBackground,
-      body: screens[_selectedIndex],
+      body: widget.child,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: isDark
@@ -85,8 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: SafeArea(
           child: BottomNavigationBar(
-            currentIndex: _selectedIndex,
-            onTap: _onTabTap,
+            currentIndex: _getCurrentTabIndex(),
+            onTap: (index) => _onTabTap(context, index),
             type: BottomNavigationBarType.fixed,
             backgroundColor: isDark
                 ? IOSTheme.darkSystemBackground
@@ -104,16 +93,60 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  int _getCurrentTabIndex() {
+    final location = GoRouterState.of(context).uri.path;
+    if (location.contains(AppRoutes.wallet)) return 1;
+    if (location.contains(AppRoutes.profile)) return 2;
+    if (location.contains(AppRoutes.admin)) return 3;
+    return 0; // home
+  }
+
+  void _onTabTap(BuildContext context, int index) {
+    HapticFeedback.selectionClick();
+    switch (index) {
+      case 0:
+        context.go(AppRoutes.home);
+        break;
+      case 1:
+        context.go(AppRoutes.wallet);
+        break;
+      case 2:
+        context.go(AppRoutes.profile);
+        break;
+      case 3:
+        context.go(AppRoutes.admin);
+        break;
+    }
+  }
 }
 
-class _HomeTab extends StatefulWidget {
-  const _HomeTab();
+// Home tab asosiy kontenti - routing uchun ishlatiladi
+class HomeTabContent extends StatefulWidget {
+  const HomeTabContent({super.key});
 
   @override
-  State<_HomeTab> createState() => _HomeTabState();
+  State<HomeTabContent> createState() => _HomeTabContentState();
 }
 
-class _HomeTabState extends State<_HomeTab>
+// Achievement modeli
+class _Achievement {
+  final IconData icon;
+  final String label;
+  final String description;
+  bool unlocked;
+  final Color color;
+
+  _Achievement({
+    required this.icon,
+    required this.label,
+    required this.description,
+    this.unlocked = false,
+    required this.color,
+  });
+}
+
+class _HomeTabContentState extends State<HomeTabContent>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _balanceAnimation;
@@ -121,6 +154,22 @@ class _HomeTabState extends State<_HomeTab>
   final ScrollController _scrollController = ScrollController();
   final double _expandedHeight = 180;
   bool _isAppBarCollapsed = false;
+
+  // Countdown timer (currently not used in UI)
+  // ignore: unused_field
+  Timer? _countdownTimer;
+  // ignore: unused_field
+  Duration _timeUntilMidnight = Duration.zero;
+
+  // Achievement badges
+  final List<_Achievement> _achievements = [];
+
+  // Weekly earnings data (currently not used in UI)
+  List<FlSpot> _weeklyEarnings = [];
+  // ignore: unused_field
+  double _weeklyTotal = 0;
+  // ignore: unused_field
+  bool _isTrendingUp = false;
 
   @override
   void initState() {
@@ -138,6 +187,74 @@ class _HomeTabState extends State<_HomeTab>
     _animationController.forward();
 
     _scrollController.addListener(_onScroll);
+    _initCountdown();
+    _initAchievements();
+    _initWeeklyEarnings();
+  }
+
+  void _initCountdown() {
+    final now = DateTime.now();
+    final midnight = DateTime(now.year, now.month, now.day + 1);
+    _timeUntilMidnight = midnight.difference(now);
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      final now = DateTime.now();
+      final midnight = DateTime(now.year, now.month, now.day + 1);
+      setState(() {
+        _timeUntilMidnight = midnight.difference(now);
+      });
+    });
+  }
+
+  void _initAchievements() {
+    _achievements.addAll([
+      _Achievement(
+        icon: Icons.play_arrow_rounded,
+        label: 'Boshlandi',
+        description: 'Birinchi qadam',
+        unlocked: true,
+        color: IOSTheme.systemGreen,
+      ),
+      _Achievement(
+        icon: Icons.visibility_rounded,
+        label: '10 reklama',
+        description: '10 ta reklama ko\'rish',
+        unlocked: false,
+        color: IOSTheme.systemBlue,
+      ),
+      _Achievement(
+        icon: Icons.local_fire_department_rounded,
+        label: '5 kun',
+        description: '5 kun streak',
+        unlocked: false,
+        color: IOSTheme.systemOrange,
+      ),
+      _Achievement(
+        icon: Icons.attach_money_rounded,
+        label: '1000 so\'m',
+        description: '1000 so\'m ishlash',
+        unlocked: false,
+        color: IOSTheme.systemPurple,
+      ),
+    ]);
+  }
+
+  void _initWeeklyEarnings() {
+    // Generate sample data for last 7 days
+    _weeklyEarnings = [];
+    _weeklyTotal = 0;
+    double previousTotal = 0;
+
+    for (int i = 6; i >= 0; i--) {
+      // Simulated daily earnings (would come from actual data)
+      final dailyEarned =
+          (i == 0 ? _calculateTodayEarnings(null) : 50.0 + (i * 10)).toDouble();
+      _weeklyTotal += dailyEarned;
+      _weeklyEarnings.add(FlSpot(i.toDouble(), dailyEarned));
+
+      if (i == 1) previousTotal = dailyEarned;
+    }
+
+    _isTrendingUp = _weeklyEarnings.last.y >= previousTotal;
   }
 
   void _onScroll() {
@@ -149,6 +266,7 @@ class _HomeTabState extends State<_HomeTab>
 
   @override
   void dispose() {
+    _countdownTimer?.cancel();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _animationController.dispose();
@@ -156,7 +274,7 @@ class _HomeTabState extends State<_HomeTab>
   }
 
   @override
-  void didUpdateWidget(_HomeTab oldWidget) {
+  void didUpdateWidget(HomeTabContent oldWidget) {
     super.didUpdateWidget(oldWidget);
     final provider = context.read<AppProvider>();
     final wallet = provider.wallet;
@@ -192,12 +310,12 @@ class _HomeTabState extends State<_HomeTab>
     );
   }
 
-  int _calculateTodayEarnings(UserModel? user) {
-    if (user == null) return 0;
+  double _calculateTodayEarnings(UserModel? user) {
+    if (user == null) return 0.0;
     // Bugungi reklamalardan earnings
     final todayAds = user.dailyAdsWatched;
     // Simple calculation - har bir ad uchun ~0.10
-    return (todayAds * 0.10).round();
+    return todayAds * 0.10;
   }
 
   int _getStreakDays(UserModel? user) {
@@ -520,12 +638,7 @@ class _HomeTabState extends State<_HomeTab>
                           GestureDetector(
                             onTap: () {
                               HapticFeedback.mediumImpact();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const WalletScreen(),
-                                ),
-                              );
+                              context.go(AppRoutes.wallet);
                             },
                             child: Container(
                               padding: const EdgeInsets.all(20),

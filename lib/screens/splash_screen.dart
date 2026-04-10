@@ -11,10 +11,7 @@ class SplashScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Colors.blue.shade900,
-              Colors.purple.shade900,
-            ],
+            colors: [Colors.blue.shade900, Colors.purple.shade900],
           ),
         ),
         child: Center(
@@ -24,7 +21,7 @@ class SplashScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(30),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -45,10 +42,7 @@ class SplashScreen extends StatelessWidget {
               const SizedBox(height: 16),
               const Text(
                 'Reklama ko\'rib pul ishlang',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white70,
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.white70),
               ),
               const SizedBox(height: 60),
               const CircularProgressIndicator(

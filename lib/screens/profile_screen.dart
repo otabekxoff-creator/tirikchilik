@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/app_provider.dart';
-import '../main.dart';
+import '../providers/language_provider.dart';
 import 'login_screen.dart';
 import '../theme/ios_theme.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final provider = context.watch<AppProvider>();
     final user = provider.currentUser;
+    final themeState = ref.watch(themeProviderProvider);
 
     if (user == null) {
       return Scaffold(
@@ -306,7 +308,7 @@ class ProfileScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
-                      context.watch<ThemeProvider>().isDarkMode
+                      themeState.isDarkMode
                           ? Icons.dark_mode_outlined
                           : Icons.light_mode_outlined,
                       color: IOSTheme.systemPurple,
@@ -323,9 +325,9 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   Switch(
-                    value: context.watch<ThemeProvider>().isDarkMode,
+                    value: themeState.isDarkMode,
                     onChanged: (_) {
-                      context.read<ThemeProvider>().toggleTheme();
+                      ref.read(themeProviderProvider.notifier).toggleTheme();
                     },
                     activeThumbColor: IOSTheme.systemBlue,
                   ),
@@ -526,7 +528,9 @@ class ProfileScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () async {
               await provider.upgradeToPremium();
+              if (!context.mounted) return;
               Navigator.pop(context);
+              if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(

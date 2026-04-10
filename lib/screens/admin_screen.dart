@@ -403,7 +403,7 @@ class _AdminScreenState extends State<AdminScreen>
                     ),
                     _buildStatCard(
                       icon: Icons.attach_money_rounded,
-                      value: '${totalEarned.toStringAsFixed(0)}',
+                      value: totalEarned.toStringAsFixed(0),
                       label: 'Jami ishlangan',
                       color: IOSTheme.systemPurple,
                       isDark: isDark,
@@ -1203,7 +1203,6 @@ class _AdminScreenState extends State<AdminScreen>
   // MARK: - Actions
 
   Future<bool> _confirmDeleteUser(dynamic user) async {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
@@ -1243,7 +1242,6 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   Future<void> _deleteAd(String adId) async {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -1490,9 +1488,11 @@ class _AdminScreenState extends State<AdminScreen>
                   };
 
                   await _adStorageService.saveAd(adData);
+                  if (!context.mounted) return;
                   Navigator.pop(context);
                   _loadData();
 
+                  if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
@@ -1642,7 +1642,7 @@ class _AdminScreenState extends State<AdminScreen>
                     onChanged: (value) {
                       setDialogState(() => isPremium = value);
                     },
-                    activeColor: IOSTheme.systemYellow,
+                    activeThumbColor: IOSTheme.systemYellow,
                   ),
                 ],
               ),

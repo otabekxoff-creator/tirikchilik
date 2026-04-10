@@ -416,7 +416,9 @@ class WalletScreen extends StatelessWidget {
                   return;
                 }
                 final success = await provider.withdraw(amount, selectedMethod);
+                if (!context.mounted) return;
                 Navigator.pop(context);
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(

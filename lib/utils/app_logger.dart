@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:logging/logging.dart';
 
 /// Logger class for professional logging in the application.
@@ -9,7 +10,12 @@ class AppLogger {
     Logger.root.level = level; // Set the default log level.
     Logger.root.onRecord.listen((LogRecord rec) {
       final timeStamp = DateTime.now().toUtc().toIso8601String();
-      print('[$timeStamp] [${rec.level.name}] [${rec.loggerName}] ${rec.message}');
+      developer.log(
+        rec.message,
+        time: DateTime.parse(timeStamp),
+        level: rec.level.value,
+        name: rec.loggerName,
+      );
     });
   }
 
