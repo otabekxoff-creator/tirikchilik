@@ -121,7 +121,7 @@ class MyApp extends StatelessWidget {
       // iOS AppBar
       appBarTheme: IOSTheme.iosAppBar,
       // iOS Cards
-      cardTheme: const CardThemeData(
+      cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(IOSTheme.radius16),
