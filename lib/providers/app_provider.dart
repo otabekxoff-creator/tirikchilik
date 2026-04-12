@@ -5,7 +5,7 @@ import '../models/ad_model.dart';
 import '../services/auth_service.dart';
 import '../services/wallet_service.dart';
 import '../services/ad_service.dart';
-import '../utils/validators.dart';
+import '../constants/app_constants.dart';
 
 // App state class
 class AppState {

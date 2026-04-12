@@ -18,6 +18,8 @@ class AppConstants {
 
   // Daily limits
   static const int maxDailyAds = 20;
+  static const int dailyAdLimit = 50;
+  static const int dailyAdLimitPremium = 100;
 
   // Storage keys
   static const String usersKey = 'users';
