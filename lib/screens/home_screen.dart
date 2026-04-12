@@ -152,7 +152,7 @@ class _HomeTabContentState extends ConsumerState<HomeTabContent>
   late Animation<double> _balanceAnimation;
   double _displayedBalance = 0;
   final ScrollController _scrollController = ScrollController();
-  final double _expandedHeight = 180;
+  final double _expandedHeight = 260;
   bool _isAppBarCollapsed = false;
 
   // Countdown timer (currently not used in UI)
@@ -384,10 +384,15 @@ class _HomeTabContentState extends ConsumerState<HomeTabContent>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [IOSTheme.systemPurple, IOSTheme.systemPink],
+          colors: isDark
+              ? [
+                  IOSTheme.darkPremiumGradient[0],
+                  IOSTheme.darkPremiumGradient[1],
+                ]
+              : [IOSTheme.systemPurple, IOSTheme.systemPink],
         ),
         borderRadius: BorderRadius.circular(IOSTheme.radius16),
         boxShadow: IOSTheme.mediumShadow,
@@ -616,13 +621,6 @@ class _HomeTabContentState extends ConsumerState<HomeTabContent>
                 ),
               ],
               flexibleSpace: FlexibleSpaceBar(
-                titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
-                title: Text(
-                  'Salom, ${user?.name ?? "Foydalanuvchi"}!',
-                  style: IOSTheme.title3.copyWith(
-                    color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
-                  ),
-                ),
                 background: Container(
                   color: isDark
                       ? IOSTheme.darkSystemGroupedBackground
@@ -633,7 +631,7 @@ class _HomeTabContentState extends ConsumerState<HomeTabContent>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 40),
+                          const SizedBox(height: 20),
                           // iOS Style Balance Card with Glassmorphism
                           GestureDetector(
                             onTap: () {
@@ -643,10 +641,12 @@ class _HomeTabContentState extends ConsumerState<HomeTabContent>
                             child: Container(
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(
+                                gradient: LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
-                                  colors: IOSTheme.premiumGradient,
+                                  colors: isDark
+                                      ? IOSTheme.darkPremiumGradient
+                                      : IOSTheme.premiumGradient,
                                 ),
                                 borderRadius: BorderRadius.circular(
                                   IOSTheme.radius20,
@@ -764,6 +764,17 @@ class _HomeTabContentState extends ConsumerState<HomeTabContent>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Greeting Text
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Text(
+                        'Assalomu alaykum, ${user?.name ?? "Foydalanuvchi"}!',
+                        style: IOSTheme.title2.copyWith(
+                          color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
                     // iOS Style Warning Banner
                     if (!provider.canWatchAd)
                       Container(

@@ -61,17 +61,33 @@ class IOSTheme {
     Color(0xFF007AFF),
     Color(0xFF5856D6),
   ];
+  static const List<Color> darkPremiumGradient = [
+    Color(0xFF5AC8FA),
+    Color(0xFFAF52DE),
+  ];
   static const List<Color> goldGradient = [
     Color(0xFFFFD700),
     Color(0xFFFFA500),
+  ];
+  static const List<Color> darkGoldGradient = [
+    Color(0xFFBF953F),
+    Color(0xFFFCF6BA),
   ];
   static const List<Color> successGradient = [
     Color(0xFF34C759),
     Color(0xFF30D158),
   ];
+  static const List<Color> darkSuccessGradient = [
+    Color(0xFF30D158),
+    Color(0xFF32D74B),
+  ];
   static const List<Color> blueGradient = [
     Color(0xFF007AFF),
     Color(0xFF5856D6),
+  ];
+  static const List<Color> darkBlueGradient = [
+    Color(0xFF5AC8FA),
+    Color(0xFF64D2FF),
   ];
 
   // MARK: - Typography (iOS 17/18 Style)
