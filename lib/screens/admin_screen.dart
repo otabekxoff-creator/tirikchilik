@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../services/wallet_service.dart';
 import '../services/ad_storage_service.dart';
 import '../models/ad_model.dart';
+import '../models/enums.dart';
 import '../theme/ios_theme.dart';
 
 class AdminScreen extends StatefulWidget {
@@ -1223,7 +1224,7 @@ class _AdminScreenState extends State<AdminScreen>
                   HapticFeedback.mediumImpact();
                   // Delete user implementation
                   await _deleteUser(user.id);
-                  if (!mounted) return;
+                  if (!context.mounted) return;
                   Navigator.pop(context, true);
                 },
                 child: Text(
@@ -1683,7 +1684,7 @@ class _AdminScreenState extends State<AdminScreen>
                   );
                   await _authService.updateUser(updatedUser);
                   HapticFeedback.mediumImpact();
-                  if (!mounted) return;
+                  if (!context.mounted) return;
                   Navigator.pop(context);
                   _loadData();
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -1735,27 +1736,5 @@ class _AdminScreenState extends State<AdminScreen>
         ],
       ),
     );
-  }
-}
-
-// MARK: - Enums
-
-enum UserSortOption {
-  newest,
-  name,
-  earned,
-  adsWatched;
-
-  String get label {
-    switch (this) {
-      case UserSortOption.newest:
-        return 'Yangi';
-      case UserSortOption.name:
-        return 'Ism';
-      case UserSortOption.earned:
-        return 'Daromad';
-      case UserSortOption.adsWatched:
-        return 'Reklamalar';
-    }
   }
 }
