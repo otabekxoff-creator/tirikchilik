@@ -6,9 +6,9 @@ platforms:
   android:
   ios:
   web:
+  windows:
 
-# Production - Android, iOS va Web (Chrome) uchun
-# Windows, Linux, macOS o'chirilgan
+# Production - Android, iOS, Web (Chrome) va Windows uchun
 
 environment:
   sdk: ^3.11.4
