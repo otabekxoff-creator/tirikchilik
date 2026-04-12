@@ -2,3 +2,17 @@ arb-dir: lib/l10n
 template-arb-file: app_uz.arb
 output-localization-file: app_localizations.dart
 output-class: AppLocalizations
+preferred-supported-locales:
+  - uz
+  - ru
+  - en
+  - kk
+  - tg
+  - ky
+supported-locales:
+  - uz
+  - ru
+  - en
+  - kk
+  - tg
+  - ky
