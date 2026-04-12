@@ -32,12 +32,10 @@ class DarkTheme {
         primary: accentBlue,
         secondary: accentGreen,
         surface: darkSurface,
-        background: darkBackground,
         error: accentRed,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: textPrimary,
-        onBackground: textPrimary,
         onError: Colors.white,
       ),
 
@@ -144,36 +142,36 @@ class DarkTheme {
 
       // Switch
       switchTheme: SwitchThemeData(
-        thumbColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return accentBlue;
           }
           return textSecondary;
         }),
-        trackColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
-            return accentBlue.withOpacity(0.5);
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return accentBlue.withValues(alpha: 0.5);
           }
-          return textDisabled.withOpacity(0.5);
+          return textDisabled.withValues(alpha: 0.5);
         }),
       ),
 
       // Checkbox
       checkboxTheme: CheckboxThemeData(
-        fillColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return accentBlue;
           }
           return Colors.transparent;
         }),
-        checkColor: MaterialStateProperty.all(Colors.white),
+        checkColor: WidgetStateProperty.all(Colors.white),
         side: const BorderSide(color: textSecondary),
       ),
 
       // Radio
       radioTheme: RadioThemeData(
-        fillColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return accentBlue;
           }
           return textSecondary;
@@ -183,15 +181,15 @@ class DarkTheme {
       // Slider
       sliderTheme: SliderThemeData(
         activeTrackColor: accentBlue,
-        inactiveTrackColor: textDisabled.withOpacity(0.3),
+        inactiveTrackColor: textDisabled.withValues(alpha: 0.3),
         thumbColor: accentBlue,
-        overlayColor: accentBlue.withOpacity(0.2),
+        overlayColor: accentBlue.withValues(alpha: 0.2),
       ),
 
       // Chip
       chipTheme: ChipThemeData(
         backgroundColor: darkCard,
-        selectedColor: accentBlue.withOpacity(0.2),
+        selectedColor: accentBlue.withValues(alpha: 0.2),
         labelStyle: const TextStyle(color: textPrimary),
         secondaryLabelStyle: const TextStyle(color: accentBlue),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -238,10 +236,7 @@ class DarkTheme {
       scaffoldBackgroundColor: amoledBlack,
       canvasColor: darkBackground,
       cardColor: darkSurface,
-      colorScheme: theme.colorScheme.copyWith(
-        surface: darkBackground,
-        background: amoledBlack,
-      ),
+      colorScheme: theme.colorScheme.copyWith(surface: darkBackground),
     );
   }
 
