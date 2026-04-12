@@ -7,26 +7,31 @@ class CacheService {
   CacheService._internal();
 
   bool _initialized = false;
-  
+
   // Box names
   static const String _usersBox = 'users_cache';
   static const String _walletBox = 'wallet_cache';
   static const String _adsBox = 'ads_cache';
   static const String _settingsBox = 'settings_cache';
   static const String _analyticsBox = 'analytics_cache';
+  static const String _offlineBox = 'offline_cache';
+
+  // Public box names for external use
+  static String get offlineBox => _offlineBox;
 
   Future<void> initialize() async {
     if (_initialized) return;
 
     try {
       await Hive.initFlutter();
-      
+
       // Open boxes
       await Hive.openBox<Map<String, dynamic>>(_usersBox);
       await Hive.openBox<Map<String, dynamic>>(_walletBox);
       await Hive.openBox<Map<String, dynamic>>(_adsBox);
       await Hive.openBox<dynamic>(_settingsBox);
       await Hive.openBox<Map<String, dynamic>>(_analyticsBox);
+      await Hive.openBox<dynamic>(_offlineBox);
 
       _initialized = true;
       AppLogger.info('CacheService initialized');
@@ -49,15 +54,19 @@ class CacheService {
     }
   }
 
-  Future<T?> getCachedData<T>(String boxName, String key, {Duration? maxAge}) async {
+  Future<T?> getCachedData<T>(
+    String boxName,
+    String key, {
+    Duration? maxAge,
+  }) async {
     try {
       final box = Hive.box<dynamic>(boxName);
       final cached = box.get(key);
-      
+
       if (cached == null) return null;
-      
+
       final timestamp = DateTime.parse(cached['timestamp']);
-      
+
       // Check if cache is expired
       if (maxAge != null) {
         final age = DateTime.now().difference(timestamp);
@@ -66,7 +75,7 @@ class CacheService {
           return null;
         }
       }
-      
+
       return cached['data'] as T?;
     } catch (e, stack) {
       AppLogger.error('Error getting cached data: $boxName/$key', e, stack);
@@ -80,25 +89,43 @@ class CacheService {
   }
 
   Future<Map<String, dynamic>?> getCachedUser(String userId) async {
-    return getCachedData<Map<String, dynamic>>(_usersBox, userId, maxAge: Duration(hours: 1));
+    return getCachedData<Map<String, dynamic>>(
+      _usersBox,
+      userId,
+      maxAge: Duration(hours: 1),
+    );
   }
 
   // Wallet cache
-  Future<void> cacheWallet(String userId, Map<String, dynamic> walletData) async {
+  Future<void> cacheWallet(
+    String userId,
+    Map<String, dynamic> walletData,
+  ) async {
     await cacheData(_walletBox, userId, walletData);
   }
 
   Future<Map<String, dynamic>?> getCachedWallet(String userId) async {
-    return getCachedData<Map<String, dynamic>>(_walletBox, userId, maxAge: Duration(minutes: 5));
+    return getCachedData<Map<String, dynamic>>(
+      _walletBox,
+      userId,
+      maxAge: Duration(minutes: 5),
+    );
   }
 
   // Ads cache
-  Future<void> cacheAds(String cacheKey, List<Map<String, dynamic>> adsData) async {
+  Future<void> cacheAds(
+    String cacheKey,
+    List<Map<String, dynamic>> adsData,
+  ) async {
     await cacheData(_adsBox, cacheKey, adsData);
   }
 
   Future<List<Map<String, dynamic>>?> getCachedAds(String cacheKey) async {
-    return getCachedData<List<Map<String, dynamic>>>(_adsBox, cacheKey, maxAge: Duration(hours: 6));
+    return getCachedData<List<Map<String, dynamic>>>(
+      _adsBox,
+      cacheKey,
+      maxAge: Duration(hours: 6),
+    );
   }
 
   // Settings cache
@@ -141,6 +168,16 @@ class CacheService {
       AppLogger.info('Box cleared: $boxName');
     } catch (e, stack) {
       AppLogger.error('Error clearing box: $boxName', e, stack);
+    }
+  }
+
+  Future<void> delete(String boxName, String key) async {
+    try {
+      final box = Hive.box<dynamic>(boxName);
+      await box.delete(key);
+      AppLogger.info('Deleted: $boxName/$key');
+    } catch (e, stack) {
+      AppLogger.error('Error deleting: $boxName/$key', e, stack);
     }
   }
 

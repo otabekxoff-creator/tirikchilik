@@ -14,6 +14,8 @@ class UserModel {
   final DateTime? lastAdWatchDate;
   final String? referralCode;
   final String? referredBy;
+  final int currentStreak;
+  final int totalReferrals;
 
   UserModel({
     required this.id,
@@ -31,6 +33,8 @@ class UserModel {
     this.lastAdWatchDate,
     this.referralCode,
     this.referredBy,
+    this.currentStreak = 0,
+    this.totalReferrals = 0,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -56,6 +60,8 @@ class UserModel {
           : null,
       referralCode: json['referralCode'],
       referredBy: json['referredBy'],
+      currentStreak: json['currentStreak'] ?? 0,
+      totalReferrals: json['totalReferrals'] ?? 0,
     );
   }
 
@@ -76,6 +82,8 @@ class UserModel {
       'lastAdWatchDate': lastAdWatchDate?.toIso8601String(),
       'referralCode': referralCode,
       'referredBy': referredBy,
+      'currentStreak': currentStreak,
+      'totalReferrals': totalReferrals,
     };
   }
 
@@ -95,6 +103,8 @@ class UserModel {
     DateTime? lastAdWatchDate,
     String? referralCode,
     String? referredBy,
+    int? currentStreak,
+    int? totalReferrals,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -112,6 +122,8 @@ class UserModel {
       lastAdWatchDate: lastAdWatchDate ?? this.lastAdWatchDate,
       referralCode: referralCode ?? this.referralCode,
       referredBy: referredBy ?? this.referredBy,
+      currentStreak: currentStreak ?? this.currentStreak,
+      totalReferrals: totalReferrals ?? this.totalReferrals,
     );
   }
 
