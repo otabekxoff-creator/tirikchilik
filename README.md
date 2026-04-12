@@ -251,9 +251,9 @@ MIT License - see [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-**Your Name**
-- GitHub: [@username](https://github.com/username)
-- Email: your.email@example.com
+**Otabek Ravshanov**
+- GitHub: [@otabekxoff-creator](https://github.com/otabekxoff-creator)
+- Email: otabekxoff@gmail.com
 
 ## 🙏 Acknowledgments
 
