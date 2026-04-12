@@ -1,12 +1,12 @@
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/wallet_model.dart';
+import 'shared_preferences_service.dart';
 
 class WalletService {
   static const String _walletsKey = 'wallets';
 
   Future<WalletModel> getWallet(String userId) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     final walletsJson = prefs.getString(_walletsKey);
     if (walletsJson == null) {
       final newWallet = WalletModel(userId: userId);
@@ -14,7 +14,9 @@ class WalletService {
       return newWallet;
     }
 
-    final wallets = (jsonDecode(walletsJson) as List).map((e) => WalletModel.fromJson(e)).toList();
+    final wallets = (jsonDecode(walletsJson) as List)
+        .map((e) => WalletModel.fromJson(e))
+        .toList();
     final wallet = wallets.firstWhere(
       (w) => w.userId == userId,
       orElse: () => WalletModel(userId: userId),
@@ -23,10 +25,12 @@ class WalletService {
   }
 
   Future<void> _saveWallet(WalletModel wallet) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     final walletsJson = prefs.getString(_walletsKey);
     final wallets = walletsJson != null
-        ? (jsonDecode(walletsJson) as List).map((e) => WalletModel.fromJson(e)).toList()
+        ? (jsonDecode(walletsJson) as List)
+              .map((e) => WalletModel.fromJson(e))
+              .toList()
         : <WalletModel>[];
 
     final index = wallets.indexWhere((w) => w.userId == wallet.userId);
@@ -36,10 +40,18 @@ class WalletService {
       wallets.add(wallet);
     }
 
-    await prefs.setString(_walletsKey, jsonEncode(wallets.map((e) => e.toJson()).toList()));
+    await prefs.setString(
+      _walletsKey,
+      jsonEncode(wallets.map((e) => e.toJson()).toList()),
+    );
   }
 
-  Future<void> addEarning(String userId, double amount, String description, {String? adLevel}) async {
+  Future<void> addEarning(
+    String userId,
+    double amount,
+    String description, {
+    String? adLevel,
+  }) async {
     final wallet = await getWallet(userId);
     final transaction = Transaction(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -53,7 +65,11 @@ class WalletService {
     await _saveWallet(wallet);
   }
 
-  Future<void> addBonus(String userId, double amount, String description) async {
+  Future<void> addBonus(
+    String userId,
+    double amount,
+    String description,
+  ) async {
     final wallet = await getWallet(userId);
     final transaction = Transaction(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -66,7 +82,11 @@ class WalletService {
     await _saveWallet(wallet);
   }
 
-  Future<bool> withdraw(String userId, double amount, String description) async {
+  Future<bool> withdraw(
+    String userId,
+    double amount,
+    String description,
+  ) async {
     final wallet = await getWallet(userId);
     if (wallet.balance < amount) return false;
 
@@ -83,9 +103,11 @@ class WalletService {
   }
 
   Future<List<WalletModel>> getAllWallets() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     final walletsJson = prefs.getString(_walletsKey);
     if (walletsJson == null) return [];
-    return (jsonDecode(walletsJson) as List).map((e) => WalletModel.fromJson(e)).toList();
+    return (jsonDecode(walletsJson) as List)
+        .map((e) => WalletModel.fromJson(e))
+        .toList();
   }
 }

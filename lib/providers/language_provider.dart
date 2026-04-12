@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../services/shared_preferences_service.dart';
 
 // Language state
 class LanguageState extends StateNotifier<Locale> {
@@ -9,7 +9,7 @@ class LanguageState extends StateNotifier<Locale> {
   }
 
   Future<void> _loadLanguage() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     final languageCode = prefs.getString('language_code') ?? 'uz';
     state = Locale(languageCode);
   }
@@ -17,7 +17,7 @@ class LanguageState extends StateNotifier<Locale> {
   Future<void> setLocale(Locale locale) async {
     if (state == locale) return;
     state = locale;
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     await prefs.setString('language_code', locale.languageCode);
   }
 
@@ -42,7 +42,7 @@ class ThemeState extends StateNotifier<ThemeStateData> {
   }
 
   Future<void> _loadTheme() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     final isDarkMode = prefs.getBool('dark_mode') ?? false;
     state = ThemeStateData(isDarkMode);
   }
@@ -50,7 +50,7 @@ class ThemeState extends StateNotifier<ThemeStateData> {
   Future<void> toggleTheme() async {
     final isDarkMode = !state.isDarkMode;
     state = ThemeStateData(isDarkMode);
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     await prefs.setBool('dark_mode', isDarkMode);
   }
 }

@@ -1,12 +1,12 @@
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/ad_model.dart';
+import 'shared_preferences_service.dart';
 
 class AdStorageService {
   static const String _adsKey = 'custom_ads';
 
   Future<List<Map<String, dynamic>>> getAllAds() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     final adsJson = prefs.getString(_adsKey);
     if (adsJson == null) return [];
 
@@ -24,7 +24,7 @@ class AdStorageService {
   }
 
   Future<void> saveAd(Map<String, dynamic> adData) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     final ads = await getAllAds();
 
     final existingIndex = ads.indexWhere((a) => a['id'] == adData['id']);
@@ -38,7 +38,7 @@ class AdStorageService {
   }
 
   Future<void> deleteAd(String id) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     final ads = await getAllAds();
     ads.removeWhere((ad) => ad['id'] == id);
     await prefs.setString(_adsKey, jsonEncode(ads));
@@ -54,7 +54,7 @@ class AdStorageService {
   }
 
   Future<void> saveAllAds(List<Map<String, dynamic>> ads) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     await prefs.setString(_adsKey, jsonEncode(ads));
   }
 
@@ -66,9 +66,11 @@ class AdStorageService {
   Future<List<Map<String, dynamic>>> getAdsByLevel(AdLevel level) async {
     final ads = await getAllAds();
     return ads
-        .where((ad) =>
-            ad['level'] == level.toString().split('.').last &&
-            (ad['isActive'] ?? true))
+        .where(
+          (ad) =>
+              ad['level'] == level.toString().split('.').last &&
+              (ad['isActive'] ?? true),
+        )
         .toList();
   }
 }

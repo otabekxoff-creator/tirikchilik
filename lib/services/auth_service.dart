@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/user_model.dart';
+import 'shared_preferences_service.dart';
 
 class AuthService {
   static const String _usersKey = 'users';
@@ -36,7 +37,7 @@ class AuthService {
   }
 
   Future<Map<String, String>> _getOrCreateSalt() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     final saltsJson = prefs.getString(_saltKey);
     if (saltsJson != null) {
       return Map<String, String>.from(jsonDecode(saltsJson));
@@ -45,7 +46,7 @@ class AuthService {
   }
 
   Future<void> _saveSalt(String userId, String salt) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     final salts = await _getOrCreateSalt();
     salts[userId] = salt;
     await prefs.setString(_saltKey, jsonEncode(salts));
@@ -64,7 +65,7 @@ class AuthService {
     String password, {
     String? referralCode,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     final usersJson = prefs.getString(_usersKey);
     final users = usersJson != null
         ? (jsonDecode(usersJson) as List)
@@ -122,9 +123,9 @@ class AuthService {
   }
 
   Future<UserModel?> adminLogin(String emailOrPhone, String password) async {
-    // Admin credentials stored securely
-    const adminLogin = 'Admin777';
-    const adminPassword = 'admin7777';
+    // Admin credentials from environment variables
+    final adminLogin = dotenv.env['ADMIN_LOGIN'] ?? 'Admin777';
+    final adminPassword = dotenv.env['ADMIN_PASSWORD'] ?? 'admin7777';
 
     if (emailOrPhone == adminLogin && password == adminPassword) {
       final adminUser = UserModel(
@@ -135,7 +136,7 @@ class AuthService {
         isAdmin: true,
         createdAt: DateTime.now(),
       );
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = SharedPreferencesService.instance.prefs;
       await prefs.setString(_currentUserKey, jsonEncode(adminUser.toJson()));
       _currentUser = adminUser;
       return adminUser;
@@ -148,7 +149,7 @@ class AuthService {
     final adminUser = await adminLogin(emailOrPhone, password);
     if (adminUser != null) return adminUser;
 
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     final usersJson = prefs.getString(_usersKey);
     if (usersJson == null) return null;
 
@@ -190,7 +191,7 @@ class AuthService {
   }
 
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     await prefs.remove(_currentUserKey);
     _currentUser = null;
   }
@@ -198,7 +199,7 @@ class AuthService {
   Future<UserModel?> getCurrentUser() async {
     if (_currentUser != null) return _currentUser;
 
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     final userJson = prefs.getString(_currentUserKey);
     if (userJson == null) return null;
 
@@ -220,7 +221,7 @@ class AuthService {
   }
 
   Future<void> updateUser(UserModel user) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     await prefs.setString(_currentUserKey, jsonEncode(user.toJson()));
 
     if (!user.isAdmin) {
@@ -243,7 +244,7 @@ class AuthService {
   }
 
   Future<List<UserModel>> getAllUsers() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     final usersJson = prefs.getString(_usersKey);
     if (usersJson == null) return [];
     return (jsonDecode(usersJson) as List)
@@ -266,7 +267,7 @@ class AuthService {
   }
 
   Future<bool> deleteUser(String userId) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = SharedPreferencesService.instance.prefs;
     final usersJson = prefs.getString(_usersKey);
     if (usersJson == null) return false;
 
