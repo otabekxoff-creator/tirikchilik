@@ -7,6 +7,8 @@ import '../services/ad_storage_service.dart';
 import '../models/ad_model.dart';
 import '../models/enums.dart';
 import '../theme/ios_theme.dart';
+import '../utils/admin_stats_helper.dart';
+import '../utils/pagination_helper.dart';
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
@@ -134,10 +136,16 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   void _updatePaginatedUsers(List<dynamic> users) {
-    final startIndex = _currentPage * _usersPerPage;
-    final endIndex = (startIndex + _usersPerPage).clamp(0, users.length);
-    _paginatedUsers = users.sublist(startIndex, endIndex);
-    _hasMoreUsers = endIndex < users.length;
+    _paginatedUsers = PaginationHelper.getPaginatedItems(
+      users,
+      _currentPage,
+      _usersPerPage,
+    );
+    _hasMoreUsers = PaginationHelper.hasMoreItems(
+      users,
+      _currentPage,
+      _usersPerPage,
+    );
   }
 
   void _loadMoreUsers() {
@@ -173,20 +181,12 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final totalUsers = _allUsers.length;
-    final totalBalance = _wallets.fold<double>(
-      0,
-      (sum, w) => sum + (w.balance ?? 0),
-    );
-    final totalEarned = _allUsers.fold<double>(
-      0,
-      (sum, u) => sum + (u.totalEarned ?? 0),
-    );
-    final premiumUsers = _allUsers.where((u) => u.isPremium == true).length;
-    final activeUsers = _allUsers.where((u) {
-      if (u.lastAdWatchDate == null) return false;
-      return DateTime.now().difference(u.lastAdWatchDate!).inDays <= 1;
-    }).length;
+    final stats = AdminStatsHelper.calculateStats(_allUsers, _wallets);
+    final totalUsers = stats['totalUsers'];
+    final totalBalance = stats['totalBalance'];
+    final totalEarned = stats['totalEarned'];
+    final premiumUsers = stats['premiumUsers'];
+    final activeUsers = stats['activeUsers'];
 
     return Scaffold(
       backgroundColor: isDark

@@ -11,6 +11,7 @@ import '../models/ad_model.dart';
 import '../models/user_model.dart';
 import '../theme/ios_theme.dart';
 import '../routing/app_router.dart';
+import '../utils/navigation_helper.dart';
 import 'watch_ad_screen.dart';
 import 'leaderboard_screen.dart';
 
@@ -74,8 +75,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         child: SafeArea(
           child: BottomNavigationBar(
-            currentIndex: _getCurrentTabIndex(),
-            onTap: (index) => _onTabTap(context, index),
+            currentIndex: _getCurrentTabIndex(user.isAdmin),
+            onTap: (index) => _onTabTap(context, index, user.isAdmin),
             type: BottomNavigationBarType.fixed,
             backgroundColor: isDark
                 ? IOSTheme.darkSystemBackground
@@ -94,30 +95,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  int _getCurrentTabIndex() {
+  int _getCurrentTabIndex(bool isAdmin) {
     final location = GoRouterState.of(context).uri.path;
-    if (location.contains(AppRoutes.wallet)) return 1;
-    if (location.contains(AppRoutes.profile)) return 2;
-    if (location.contains(AppRoutes.admin)) return 3;
-    return 0; // home
+    return NavigationHelper.getCurrentTabIndex(location, isAdmin);
   }
 
-  void _onTabTap(BuildContext context, int index) {
-    HapticFeedback.selectionClick();
-    switch (index) {
-      case 0:
-        context.go(AppRoutes.home);
-        break;
-      case 1:
-        context.go(AppRoutes.wallet);
-        break;
-      case 2:
-        context.go(AppRoutes.profile);
-        break;
-      case 3:
-        context.go(AppRoutes.admin);
-        break;
-    }
+  void _onTabTap(BuildContext context, int index, bool isAdmin) {
+    NavigationHelper.navigateToTab(context, index, isAdmin);
   }
 }
 
