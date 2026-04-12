@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/language_provider.dart';
+import 'providers/app_provider.dart';
 import 'services/admob_service.dart';
 import 'utils/app_logger.dart';
 import 'package:logging/logging.dart' as logging;
@@ -34,52 +35,45 @@ void main() async {
   // Set system UI overlay style (iOS style)
   SystemChrome.setSystemUIOverlayStyle(IOSTheme.lightOverlay);
 
-  runApp(const MyApp());
+  runApp(
+    ProviderScope(
+      overrides: [appProviderProvider.overrideWith((ref) => AppNotifier())],
+      child: const MyApp(),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ProviderScope(
-      child: Consumer(
-        builder: (context, ref, child) {
-          final languageProvider = ref.watch(languageProviderProvider);
-          final themeProvider = ref.watch(themeProviderProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final languageProvider = ref.watch(languageProviderProvider);
+    final themeProvider = ref.watch(themeProviderProvider);
 
-          return MaterialApp.router(
-            title: 'Tirikchilik',
-            debugShowCheckedModeBanner: false,
-            theme: _buildLightTheme(),
-            darkTheme: _buildDarkTheme(),
-            themeMode: themeProvider.isDarkMode
-                ? ThemeMode.dark
-                : ThemeMode.light,
-            routerConfig: appRouter,
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [
-              Locale('uz'), // O'zbek
-              Locale('ru'), // Русский
-              Locale('en'), // English
-            ],
-            locale: languageProvider,
-            localeResolutionCallback: (locale, supportedLocales) {
-              for (var supportedLocale in supportedLocales) {
-                if (supportedLocale.languageCode == locale?.languageCode) {
-                  return supportedLocale;
-                }
-              }
-              return supportedLocales.first;
-            },
-          );
-        },
-      ),
+    return MaterialApp.router(
+      title: 'Tirikchilik',
+      debugShowCheckedModeBanner: false,
+      theme: _buildLightTheme(),
+      darkTheme: _buildDarkTheme(),
+      themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      routerConfig: appRouter,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('uz'), Locale('ru'), Locale('en')],
+      locale: languageProvider,
+      localeResolutionCallback: (locale, supportedLocales) {
+        for (var supportedLocale in supportedLocales) {
+          if (supportedLocale.languageCode == locale?.languageCode) {
+            return supportedLocale;
+          }
+        }
+        return supportedLocales.first;
+      },
     );
   }
 
@@ -87,7 +81,6 @@ class MyApp extends StatelessWidget {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      // iOS 26 System Colors
       colorScheme: const ColorScheme.light(
         primary: IOSTheme.systemBlue,
         onPrimary: IOSTheme.systemBackground,
@@ -99,7 +92,6 @@ class MyApp extends StatelessWidget {
         error: IOSTheme.systemRed,
         onError: IOSTheme.systemBackground,
       ),
-      // iOS Typography
       fontFamily: IOSTheme.fontFamily,
       textTheme: TextTheme(
         displayLarge: IOSTheme.largeTitle,
@@ -114,18 +106,15 @@ class MyApp extends StatelessWidget {
         labelLarge: IOSTheme.headline.copyWith(color: IOSTheme.systemBlue),
         labelSmall: IOSTheme.caption1,
       ),
-      // iOS AppBar
       appBarTheme: IOSTheme.iosAppBar,
-      // iOS Cards
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(IOSTheme.radius16),
         ),
         color: IOSTheme.systemBackground,
-        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
-      // iOS Buttons
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: IOSTheme.filledButtonStyle,
       ),
@@ -133,26 +122,20 @@ class MyApp extends StatelessWidget {
         style: IOSTheme.outlinedButtonStyle,
       ),
       textButtonTheme: TextButtonThemeData(style: IOSTheme.textButtonStyle),
-      // iOS Input
       inputDecorationTheme: IOSTheme.iosInputTheme,
-      // iOS Navigation
       bottomNavigationBarTheme: IOSTheme.iosNavBar,
-      // iOS Dividers
       dividerTheme: const DividerThemeData(
         color: IOSTheme.separator,
         thickness: 0.5,
         space: 0.5,
       ),
-      // iOS Background
       scaffoldBackgroundColor: IOSTheme.systemGroupedBackground,
-      // iOS Dialog
       dialogTheme: DialogThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(IOSTheme.radius20),
         ),
         backgroundColor: IOSTheme.systemBackground,
       ),
-      // iOS Bottom Sheet
       bottomSheetTheme: BottomSheetThemeData(
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
@@ -162,7 +145,6 @@ class MyApp extends StatelessWidget {
         ),
         backgroundColor: IOSTheme.systemBackground,
       ),
-      // iOS Chip
       chipTheme: ChipThemeData(
         backgroundColor: IOSTheme.systemGray6,
         selectedColor: IOSTheme.systemBlue.withValues(alpha: 0.15),
@@ -176,7 +158,6 @@ class MyApp extends StatelessWidget {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      // iOS Dark System Colors
       colorScheme: const ColorScheme.dark(
         primary: IOSTheme.systemCyan,
         onPrimary: IOSTheme.darkSystemBackground,
@@ -188,7 +169,6 @@ class MyApp extends StatelessWidget {
         error: IOSTheme.systemRed,
         onError: IOSTheme.darkSystemBackground,
       ),
-      // iOS Typography (Dark)
       fontFamily: IOSTheme.fontFamily,
       textTheme: TextTheme(
         displayLarge: IOSTheme.largeTitle.copyWith(color: IOSTheme.darkLabel),
@@ -208,7 +188,6 @@ class MyApp extends StatelessWidget {
           color: IOSTheme.darkSecondaryLabel,
         ),
       ),
-      // iOS AppBar (Dark)
       appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
@@ -218,16 +197,14 @@ class MyApp extends StatelessWidget {
         titleTextStyle: IOSTheme.headline.copyWith(color: IOSTheme.darkLabel),
         toolbarHeight: 44,
       ),
-      // iOS Cards (Dark)
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(IOSTheme.radius16),
         ),
         color: IOSTheme.darkSecondarySystemBackground,
-        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
-      // iOS Buttons (Dark)
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
@@ -260,7 +237,6 @@ class MyApp extends StatelessWidget {
           textStyle: IOSTheme.headline.copyWith(color: IOSTheme.systemCyan),
         ),
       ),
-      // iOS Input (Dark)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: IOSTheme.darkSecondarySystemBackground,
@@ -286,7 +262,6 @@ class MyApp extends StatelessWidget {
         ),
         hintStyle: IOSTheme.body.copyWith(color: IOSTheme.darkTertiaryLabel),
       ),
-      // iOS Navigation (Dark)
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: IOSTheme.darkSystemBackground,
         selectedItemColor: IOSTheme.systemCyan,
@@ -296,22 +271,18 @@ class MyApp extends StatelessWidget {
         selectedLabelStyle: IOSTheme.caption2,
         unselectedLabelStyle: IOSTheme.caption2,
       ),
-      // iOS Dividers (Dark)
       dividerTheme: const DividerThemeData(
         color: IOSTheme.darkSeparator,
         thickness: 0.5,
         space: 0.5,
       ),
-      // iOS Background (Dark)
       scaffoldBackgroundColor: IOSTheme.darkSystemGroupedBackground,
-      // iOS Dialog (Dark)
       dialogTheme: DialogThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(IOSTheme.radius20),
         ),
         backgroundColor: IOSTheme.darkSecondarySystemBackground,
       ),
-      // iOS Bottom Sheet (Dark)
       bottomSheetTheme: BottomSheetThemeData(
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
@@ -321,7 +292,6 @@ class MyApp extends StatelessWidget {
         ),
         backgroundColor: IOSTheme.darkSecondarySystemBackground,
       ),
-      // iOS Chip (Dark)
       chipTheme: ChipThemeData(
         backgroundColor: IOSTheme.darkTertiarySystemBackground,
         selectedColor: IOSTheme.systemCyan.withValues(alpha: 0.15),

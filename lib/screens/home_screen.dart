@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -14,18 +14,18 @@ import '../routing/app_router.dart';
 import 'watch_ad_screen.dart';
 import 'leaderboard_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   final Widget child;
   const HomeScreen({super.key, required this.child});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<AppProvider>();
+    final provider = ref.watch(appProviderProvider);
     final user = provider.currentUser;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -122,11 +122,11 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 // Home tab asosiy kontenti - routing uchun ishlatiladi
-class HomeTabContent extends StatefulWidget {
+class HomeTabContent extends ConsumerStatefulWidget {
   const HomeTabContent({super.key});
 
   @override
-  State<HomeTabContent> createState() => _HomeTabContentState();
+  ConsumerState<HomeTabContent> createState() => _HomeTabContentState();
 }
 
 // Achievement modeli
@@ -146,7 +146,7 @@ class _Achievement {
   });
 }
 
-class _HomeTabContentState extends State<HomeTabContent>
+class _HomeTabContentState extends ConsumerState<HomeTabContent>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _balanceAnimation;
@@ -276,7 +276,7 @@ class _HomeTabContentState extends State<HomeTabContent>
   @override
   void didUpdateWidget(HomeTabContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final provider = context.read<AppProvider>();
+    final provider = ref.read(appProviderProvider);
     final wallet = provider.wallet;
     if (wallet != null && _displayedBalance != wallet.balance) {
       _displayedBalance = wallet.balance;
@@ -287,7 +287,7 @@ class _HomeTabContentState extends State<HomeTabContent>
 
   Future<void> _refreshData() async {
     HapticFeedback.mediumImpact();
-    final provider = context.read<AppProvider>();
+    final provider = ref.read(appProviderProvider.notifier);
     await provider.init();
   }
 
@@ -559,7 +559,7 @@ class _HomeTabContentState extends State<HomeTabContent>
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<AppProvider>();
+    final provider = ref.watch(appProviderProvider);
     final user = provider.currentUser;
     final wallet = provider.wallet;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1078,7 +1078,7 @@ class _HomeTabContentState extends State<HomeTabContent>
     IconData icon,
     Color color,
   ) {
-    final provider = context.read<AppProvider>();
+    final provider = ref.read(appProviderProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final reward = provider.isPremium ? level.reward * 1.5 : level.reward;
     final isDisabled = !provider.canWatchAd;

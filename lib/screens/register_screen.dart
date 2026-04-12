@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/app_provider.dart';
 import '../utils/validators.dart';
 import '../theme/ios_theme.dart';
 
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -36,12 +36,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final provider = context.read<AppProvider>();
+    final notifier = ref.read(appProviderProvider.notifier);
     final referralCode = _hasReferralCode
         ? _referralController.text.trim().toUpperCase()
         : null;
 
-    await provider.register(
+    await notifier.register(
       _nameController.text.trim(),
       _emailController.text.trim(),
       _phoneController.text.trim(),
@@ -49,11 +49,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       referralCode: referralCode,
     );
 
-    if (provider.error != null && mounted) {
+    final state = ref.read(appProviderProvider);
+    if (state.error != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            provider.error!,
+            state.error!,
             style: IOSTheme.subhead.copyWith(color: Colors.white),
           ),
           backgroundColor: IOSTheme.systemRed,
@@ -63,7 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
       );
-      provider.clearError();
+      notifier.clearError();
     } else if (mounted) {
       final message = referralCode != null && referralCode.isNotEmpty
           ? 'Ro\'yxatdan o\'tish muvaffaqiyatli! Referral bonus: 10 000 so\'m'
@@ -87,7 +88,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<AppProvider>();
+    final provider = ref.watch(appProviderProvider);
 
     return Scaffold(
       backgroundColor: IOSTheme.systemGroupedBackground,

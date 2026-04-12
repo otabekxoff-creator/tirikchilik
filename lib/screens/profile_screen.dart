@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/app_provider.dart';
@@ -12,7 +11,7 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final provider = context.watch<AppProvider>();
+    final provider = ref.watch(appProviderProvider);
     final user = provider.currentUser;
     final themeState = ref.watch(themeProviderProvider);
 
@@ -42,7 +41,7 @@ class ProfileScreen extends ConsumerWidget {
               IconButton(
                 icon: Icon(Icons.logout, color: IOSTheme.systemRed),
                 onPressed: () async {
-                  await provider.logout();
+                  await ref.read(appProviderProvider.notifier).logout();
                   if (context.mounted) {
                     Navigator.pushAndRemoveUntil(
                       context,
@@ -389,7 +388,7 @@ class ProfileScreen extends ConsumerWidget {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () => _showPremiumDialog(context),
+                        onPressed: () => _showPremiumDialog(context, ref),
                         style: ElevatedButton.styleFrom(
                           elevation: 0,
                           backgroundColor: Colors.white,
@@ -449,9 +448,7 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _showPremiumDialog(BuildContext context) {
-    final provider = context.read<AppProvider>();
-
+  void _showPremiumDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -527,7 +524,7 @@ class ProfileScreen extends ConsumerWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              await provider.upgradeToPremium();
+              await ref.read(appProviderProvider.notifier).upgradeToPremium();
               if (!context.mounted) return;
               Navigator.pop(context);
               if (!context.mounted) return;

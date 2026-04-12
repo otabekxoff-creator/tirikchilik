@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/app_provider.dart';
 import '../theme/ios_theme.dart';
 import '../routing/app_router.dart';
 import 'register_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -47,22 +47,23 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
 
-    final provider = context.read<AppProvider>();
-    await provider.login(email, password);
+    final notifier = ref.read(appProviderProvider.notifier);
+    await notifier.login(email, password);
 
-    if (provider.error != null && mounted) {
+    final state = ref.read(appProviderProvider);
+    if (state.error != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(provider.error!), backgroundColor: Colors.red),
+        SnackBar(content: Text(state.error!), backgroundColor: Colors.red),
       );
-      provider.clearError();
-    } else if (provider.isLoggedIn && mounted) {
+      notifier.clearError();
+    } else if (state.isLoggedIn && mounted) {
       context.go(AppRoutes.home);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<AppProvider>();
+    final provider = ref.watch(appProviderProvider);
 
     return Scaffold(
       backgroundColor: IOSTheme.systemGroupedBackground,

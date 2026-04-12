@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/app_provider.dart';
 import '../models/wallet_model.dart';
 import '../theme/ios_theme.dart';
 
-class WalletScreen extends StatelessWidget {
+class WalletScreen extends ConsumerWidget {
   const WalletScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final provider = context.watch<AppProvider>();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final provider = ref.watch(appProviderProvider);
     final wallet = provider.wallet;
 
     return Scaffold(
@@ -86,7 +86,7 @@ class WalletScreen extends StatelessWidget {
                           icon: Icons.arrow_downward,
                           label: 'Yechish',
                           color: IOSTheme.systemOrange,
-                          onTap: () => _showWithdrawDialog(context),
+                          onTap: () => _showWithdrawDialog(context, ref),
                         ),
                       ],
                     ),
@@ -303,8 +303,7 @@ class WalletScreen extends StatelessWidget {
     );
   }
 
-  void _showWithdrawDialog(BuildContext context) {
-    final provider = context.read<AppProvider>();
+  void _showWithdrawDialog(BuildContext context, WidgetRef ref) {
     final amountController = TextEditingController();
     String selectedMethod = 'Payme';
 
@@ -415,7 +414,9 @@ class WalletScreen extends StatelessWidget {
                   );
                   return;
                 }
-                final success = await provider.withdraw(amount, selectedMethod);
+                final success = await ref
+                    .read(appProviderProvider.notifier)
+                    .withdraw(amount, selectedMethod);
                 if (!context.mounted) return;
                 Navigator.pop(context);
                 if (!context.mounted) return;

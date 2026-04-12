@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_model.dart';
 import '../models/wallet_model.dart';
 import '../models/ad_model.dart';
@@ -7,53 +7,87 @@ import '../services/wallet_service.dart';
 import '../services/ad_service.dart';
 import '../utils/validators.dart';
 
-class AppProvider extends ChangeNotifier {
+// App state class
+class AppState {
+  final UserModel? currentUser;
+  final WalletModel? wallet;
+  final List<AdModel> todayAds;
+  final bool isLoading;
+  final String? error;
+
+  const AppState({
+    this.currentUser,
+    this.wallet,
+    this.todayAds = const [],
+    this.isLoading = false,
+    this.error,
+  });
+
+  AppState copyWith({
+    UserModel? currentUser,
+    WalletModel? wallet,
+    List<AdModel>? todayAds,
+    bool? isLoading,
+    String? error,
+  }) {
+    return AppState(
+      currentUser: currentUser ?? this.currentUser,
+      wallet: wallet ?? this.wallet,
+      todayAds: todayAds ?? this.todayAds,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+
+  bool get isLoggedIn => currentUser != null;
+  bool get isAdmin => currentUser?.isAdmin ?? false;
+  bool get isPremium => currentUser?.isPremium ?? false;
+  int get dailyAdLimit =>
+      isPremium ? AppConstants.dailyAdLimitPremium : AppConstants.dailyAdLimit;
+  int get remainingAds =>
+      currentUser != null ? dailyAdLimit - currentUser!.dailyAdsWatched : 0;
+  bool get canWatchAd => remainingAds > 0;
+}
+
+// AppProvider - StateNotifier
+class AppNotifier extends StateNotifier<AppState> {
   final AuthService _authService = AuthService();
   final WalletService _walletService = WalletService();
   final AdService _adService = AdService();
 
-  UserModel? _currentUser;
-  WalletModel? _wallet;
-  List<AdModel> _todayAds = [];
-  bool _isLoading = false;
-  String? _error;
-
-  UserModel? get currentUser => _currentUser;
-  WalletModel? get wallet => _wallet;
-  List<AdModel> get todayAds => _todayAds;
-  bool get isLoading => _isLoading;
-  String? get error => _error;
-
-  bool get isLoggedIn => _currentUser != null;
-  bool get isAdmin => _currentUser?.isAdmin ?? false;
-  bool get isPremium => _currentUser?.isPremium ?? false;
+  AppNotifier() : super(const AppState()) {
+    init();
+  }
 
   Future<void> init() async {
-    _isLoading = true;
-    _currentUser = await _authService.getCurrentUser();
-    if (_currentUser != null) {
-      await _loadWallet();
+    state = state.copyWith(isLoading: true);
+    final user = await _authService.getCurrentUser();
+    WalletModel? wallet;
+    if (user != null) {
+      wallet = await _walletService.getWallet(user.id);
     }
-    _todayAds = _adService.generateDailyAds();
-    _isLoading = false;
-    Future.microtask(() => notifyListeners());
+    state = state.copyWith(
+      currentUser: user,
+      wallet: wallet,
+      todayAds: _adService.generateDailyAds(),
+      isLoading: false,
+    );
   }
 
   Future<void> login(String emailOrPhone, String password) async {
-    _setLoading(true);
-    _error = null;
+    state = state.copyWith(isLoading: true, error: null);
     try {
-      _currentUser = await _authService.login(emailOrPhone, password);
-      if (_currentUser != null) {
-        await _loadWallet();
+      final user = await _authService.login(emailOrPhone, password);
+      if (user != null) {
+        final wallet = await _walletService.getWallet(user.id);
+        state = state.copyWith(currentUser: user, wallet: wallet);
       } else {
-        _error = 'Login yoki parol noto\'g\'ri';
+        state = state.copyWith(error: 'Login yoki parol noto\'g\'ri');
       }
     } catch (e) {
-      _error = e.toString();
+      state = state.copyWith(error: e.toString());
     }
-    _setLoading(false);
-    notifyListeners();
+    state = state.copyWith(isLoading: false);
   }
 
   Future<void> register(
@@ -63,8 +97,7 @@ class AppProvider extends ChangeNotifier {
     String password, {
     String? referralCode,
   }) async {
-    _setLoading(true);
-    _error = null;
+    state = state.copyWith(isLoading: true, error: null);
     try {
       final success = await _authService.register(
         name,
@@ -74,20 +107,21 @@ class AppProvider extends ChangeNotifier {
         referralCode: referralCode,
       );
       if (!success) {
-        _error = 'Bu email yoki telefon allaqachon ro\'yxatdan o\'tgan';
+        state = state.copyWith(
+          error: 'Bu email yoki telefon allaqachon ro\'yxatdan o\'tgan',
+        );
       } else {
-        // Give referral bonus if referral code was valid
-        if (referralCode != null && referralCode.isNotEmpty) {
+        final user = await _authService.getCurrentUser();
+        if (referralCode != null && referralCode.isNotEmpty && user != null) {
           final referrer = await _authService.getUserByReferralCode(
             referralCode,
           );
           if (referrer != null && referrer.id.isNotEmpty) {
             await _walletService.addBonus(
-              _currentUser!.id,
+              user.id,
               1.0,
               'Referral bonus - $referralCode',
             );
-            // Also give bonus to referrer
             await _walletService.addBonus(
               referrer.id,
               0.5,
@@ -95,45 +129,35 @@ class AppProvider extends ChangeNotifier {
             );
           }
         }
-        await _loadWallet();
+        if (user != null) {
+          final wallet = await _walletService.getWallet(user.id);
+          state = state.copyWith(currentUser: user, wallet: wallet);
+        }
       }
     } catch (e) {
-      _error = e.toString();
+      state = state.copyWith(error: e.toString());
     }
-    _setLoading(false);
-    notifyListeners();
+    state = state.copyWith(isLoading: false);
   }
 
   Future<void> logout() async {
     await _authService.logout();
-    _currentUser = null;
-    _wallet = null;
-    notifyListeners();
+    state = const AppState(todayAds: []);
+    // Re-init to generate new daily ads
+    init();
   }
-
-  Future<void> _loadWallet() async {
-    if (_currentUser != null) {
-      _wallet = await _walletService.getWallet(_currentUser!.id);
-    }
-  }
-
-  int get dailyAdLimit =>
-      isPremium ? AppConstants.dailyAdLimitPremium : AppConstants.dailyAdLimit;
-  int get remainingAds =>
-      _currentUser != null ? dailyAdLimit - _currentUser!.dailyAdsWatched : 0;
-  bool get canWatchAd => remainingAds > 0;
 
   Future<void> watchAd(AdLevel level) async {
-    if (_currentUser == null || _wallet == null) return;
+    if (state.currentUser == null || state.wallet == null) return;
 
-    // Check daily limit
-    if (!canWatchAd) {
-      _error = 'Siz bugun maksimal reklama ko\'rdingiz. Ertaga qaytib keling!';
-      notifyListeners();
+    if (!state.canWatchAd) {
+      state = state.copyWith(
+        error: 'Siz bugun maksimal reklama ko\'rdingiz. Ertaga qaytib keling!',
+      );
       return;
     }
 
-    _setLoading(true);
+    state = state.copyWith(isLoading: true);
 
     await Future.delayed(
       Duration(
@@ -145,77 +169,80 @@ class AppProvider extends ChangeNotifier {
       ),
     );
 
-    final reward = _adService.calculateReward(level, isPremium: isPremium);
+    final reward = _adService.calculateReward(
+      level,
+      isPremium: state.isPremium,
+    );
 
     await _walletService.addEarning(
-      _currentUser!.id,
+      state.currentUser!.id,
       reward,
       '${level.label} reklama ko\'rilgan',
       adLevel: level.label,
     );
 
-    _wallet = await _walletService.getWallet(_currentUser!.id);
+    final wallet = await _walletService.getWallet(state.currentUser!.id);
 
-    _currentUser = _currentUser!.copyWith(
-      totalAdsWatched: _currentUser!.totalAdsWatched + 1,
-      dailyAdsWatched: _currentUser!.dailyAdsWatched + 1,
+    final updatedUser = state.currentUser!.copyWith(
+      totalAdsWatched: state.currentUser!.totalAdsWatched + 1,
+      dailyAdsWatched: state.currentUser!.dailyAdsWatched + 1,
       lastAdWatchDate: DateTime.now(),
-      totalEarned: _currentUser!.totalEarned + reward,
+      totalEarned: state.currentUser!.totalEarned + reward,
     );
-    await _authService.updateUser(_currentUser!);
+    await _authService.updateUser(updatedUser);
 
-    _setLoading(false);
-    notifyListeners();
+    state = state.copyWith(
+      currentUser: updatedUser,
+      wallet: wallet,
+      isLoading: false,
+    );
   }
 
   Future<bool> withdraw(double amount, String method) async {
-    if (_currentUser == null || _wallet == null) return false;
+    if (state.currentUser == null || state.wallet == null) return false;
 
-    _setLoading(true);
+    state = state.copyWith(isLoading: true);
     final success = await _walletService.withdraw(
-      _currentUser!.id,
+      state.currentUser!.id,
       amount,
       '$method orqali yechib olish',
     );
 
     if (success) {
-      _wallet = await _walletService.getWallet(_currentUser!.id);
+      final wallet = await _walletService.getWallet(state.currentUser!.id);
+      state = state.copyWith(wallet: wallet, isLoading: false);
+    } else {
+      state = state.copyWith(isLoading: false);
     }
-
-    _setLoading(false);
-    notifyListeners();
     return success;
   }
 
   Future<void> upgradeToPremium() async {
-    if (_currentUser == null) return;
+    if (state.currentUser == null) return;
 
-    _setLoading(true);
+    state = state.copyWith(isLoading: true);
 
-    _currentUser = _currentUser!.copyWith(
+    final updatedUser = state.currentUser!.copyWith(
       isPremium: true,
       premiumExpiry: DateTime.now().add(Duration(days: 30)),
     );
-    await _authService.updateUser(_currentUser!);
+    await _authService.updateUser(updatedUser);
 
     await _walletService.addEarning(
-      _currentUser!.id,
+      updatedUser.id,
       0,
       'Premium obuna faollashtirildi',
     );
 
-    _setLoading(false);
-    notifyListeners();
-  }
-
-  void _setLoading(bool value) {
-    _isLoading = value;
-    // Defer notifyListeners to avoid build phase issues
-    Future.microtask(() => notifyListeners());
+    state = state.copyWith(currentUser: updatedUser, isLoading: false);
   }
 
   void clearError() {
-    _error = null;
-    Future.microtask(() => notifyListeners());
+    state = state.copyWith(error: null);
   }
 }
+
+// Provider
+final appProviderProvider = StateNotifierProvider<AppNotifier, AppState>(
+  (ref) => AppNotifier(),
+);

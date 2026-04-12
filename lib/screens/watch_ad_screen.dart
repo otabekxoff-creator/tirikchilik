@@ -1,22 +1,22 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:confetti/confetti.dart';
 import '../models/ad_model.dart';
 import '../providers/app_provider.dart';
 import '../services/ad_service.dart';
 import '../theme/ios_theme.dart';
 
-class WatchAdScreen extends StatefulWidget {
+class WatchAdScreen extends ConsumerStatefulWidget {
   final AdLevel level;
 
   const WatchAdScreen({super.key, required this.level});
 
   @override
-  State<WatchAdScreen> createState() => _WatchAdScreenState();
+  ConsumerState<WatchAdScreen> createState() => _WatchAdScreenState();
 }
 
-class _WatchAdScreenState extends State<WatchAdScreen> {
+class _WatchAdScreenState extends ConsumerState<WatchAdScreen> {
   late ConfettiController _confettiController;
   bool _isWatching = false;
   bool _isCompleted = false;
@@ -89,7 +89,7 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
   Future<void> _completeAd() async {
     _timer?.cancel();
 
-    final provider = context.read<AppProvider>();
+    final provider = ref.read(appProviderProvider.notifier);
     await provider.watchAd(widget.level);
 
     setState(() {
@@ -114,10 +114,11 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
       );
     }
 
-    final provider = context.watch<AppProvider>();
+    final provider = ref.watch(appProviderProvider);
     final double reward;
     if (_currentAd != null) {
-      final baseReward = (_currentAd!['reward'] ?? widget.level.reward).toDouble();
+      final baseReward = (_currentAd!['reward'] ?? widget.level.reward)
+          .toDouble();
       reward = provider.isPremium ? baseReward * 1.5 : baseReward;
     } else {
       reward = provider.isPremium
@@ -143,7 +144,11 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white, size: 22),
+                          icon: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 22,
+                          ),
                           onPressed: () => Navigator.pop(context),
                         ),
                       ),
@@ -156,7 +161,10 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
                         decoration: BoxDecoration(
                           color: widget.level.color.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: widget.level.color, width: 1.5),
+                          border: Border.all(
+                            color: widget.level.color,
+                            width: 1.5,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -212,9 +220,13 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(6),
                           child: LinearProgressIndicator(
-                            value: (_totalDuration - _secondsRemaining) / _totalDuration,
+                            value:
+                                (_totalDuration - _secondsRemaining) /
+                                _totalDuration,
                             backgroundColor: IOSTheme.systemGray5,
-                            valueColor: AlwaysStoppedAnimation<Color>(widget.level.color),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              widget.level.color,
+                            ),
                             minHeight: 8,
                           ),
                         ),
@@ -228,8 +240,8 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
                     child: _isCompleted
                         ? _buildSuccessView(reward)
                         : _isWatching
-                            ? _buildAdView()
-                            : _buildStartView(reward),
+                        ? _buildAdView()
+                        : _buildStartView(reward),
                   ),
                 ),
 
@@ -264,9 +276,14 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
                       if (provider.isPremium) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: IOSTheme.goldGradient[0].withValues(alpha: 0.3),
+                            color: IOSTheme.goldGradient[0].withValues(
+                              alpha: 0.3,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
@@ -525,11 +542,7 @@ class _WatchAdScreenState extends State<WatchAdScreen> {
             color: Colors.green,
             shape: BoxShape.circle,
             boxShadow: [
-              BoxShadow(
-                color: Colors.green,
-                blurRadius: 20,
-                spreadRadius: 5,
-              ),
+              BoxShadow(color: Colors.green, blurRadius: 20, spreadRadius: 5),
             ],
           ),
           child: const Icon(Icons.check, size: 60, color: Colors.white),
