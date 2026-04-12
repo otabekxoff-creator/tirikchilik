@@ -1221,7 +1221,9 @@ class _AdminScreenState extends State<AdminScreen>
               TextButton(
                 onPressed: () async {
                   HapticFeedback.mediumImpact();
-                  // TODO: Implement delete user
+                  // Delete user implementation
+                  await _deleteUser(user.id);
+                  if (!mounted) return;
                   Navigator.pop(context, true);
                 },
                 child: Text(
@@ -1233,6 +1235,12 @@ class _AdminScreenState extends State<AdminScreen>
           ),
         ) ??
         false;
+  }
+
+  Future<void> _deleteUser(String userId) async {
+    HapticFeedback.mediumImpact();
+    await _authService.deleteUser(userId);
+    _loadData();
   }
 
   Future<void> _toggleAdStatus(String adId) async {
@@ -1310,20 +1318,27 @@ class _AdminScreenState extends State<AdminScreen>
             child: IconButton(
               icon: const Icon(Icons.delete_rounded),
               color: IOSTheme.systemRed,
-              onPressed: () {
-                // TODO: Bulk delete
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      '${_selectedUserIds.length} ta foydalanuvchi o\'chiriladi',
+              onPressed: () async {
+                // Bulk delete implementation
+                for (final userId in _selectedUserIds) {
+                  await _authService.deleteUser(userId);
+                }
+                _selectedUserIds.clear();
+                _loadData();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        '${_selectedUserIds.length} ta foydalanuvchi o\'chirildi',
+                      ),
+                      backgroundColor: IOSTheme.systemGreen,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(IOSTheme.radius12),
+                      ),
                     ),
-                    backgroundColor: IOSTheme.systemRed,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(IOSTheme.radius12),
-                    ),
-                  ),
-                );
+                  );
+                }
               },
             ),
           ),
@@ -1602,6 +1617,7 @@ class _AdminScreenState extends State<AdminScreen>
     final emailController = TextEditingController(text: user.email ?? '');
     final phoneController = TextEditingController(text: user.phone ?? '');
     bool isPremium = user.isPremium ?? false;
+    bool isAdmin = user.isAdmin ?? false;
 
     showDialog(
       context: context,
@@ -1656,10 +1672,20 @@ class _AdminScreenState extends State<AdminScreen>
                 ),
               ),
               ElevatedButton(
-                onPressed: () {
-                  // TODO: Save user changes
+                onPressed: () async {
+                  // Save user changes implementation
+                  final updatedUser = user.copyWith(
+                    name: nameController.text.trim(),
+                    email: emailController.text.trim(),
+                    phone: phoneController.text.trim(),
+                    isPremium: isPremium,
+                    isAdmin: isAdmin,
+                  );
+                  await _authService.updateUser(updatedUser);
                   HapticFeedback.mediumImpact();
+                  if (!mounted) return;
                   Navigator.pop(context);
+                  _loadData();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: const Text('Foydalanuvchi yangilandi!'),

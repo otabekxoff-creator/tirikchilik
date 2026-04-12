@@ -62,9 +62,4 @@ class AppConstants {
   static const int dailyAdLimitPremium = 100;
   static const int minWithdrawAmount = 10;
   static const int premiumPrice = 999; // $9.99 cents
-
-  static const Map<String, String> adminCredentials = {
-    'login': 'Admin777',
-    'password': 'admin7777',
-  };
 }

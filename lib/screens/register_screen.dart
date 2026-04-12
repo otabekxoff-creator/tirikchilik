@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../providers/app_provider.dart';
 import '../utils/validators.dart';
 import '../theme/ios_theme.dart';
-import '../services/auth_service.dart';
-import '../routing/app_router.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -24,7 +21,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _referralController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _hasReferralCode = false;
-  final AuthService _authService = AuthService();
 
   @override
   void dispose() {
@@ -87,34 +83,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         ),
       );
       Navigator.pop(context);
-    }
-  }
-
-  Future<void> _signInWithGoogle() async {
-    final user = await _authService.signInWithGoogle();
-    if (user != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Xush kelibsiz, ${user.name}!'),
-          backgroundColor: IOSTheme.systemGreen,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
-      context.go(AppRoutes.home);
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Google bilan ro\'yxatdan o\'tishda xatolik yuz berdi'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
     }
   }
 
@@ -357,28 +325,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Google Sign-In Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: OutlinedButton.icon(
-                    onPressed: _signInWithGoogle,
-                    icon: const Icon(Icons.login, size: 20),
-                    label: const Text('Google bilan ro\'yxatdan o\'tish'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: IOSTheme.label,
-                      side: BorderSide(color: IOSTheme.systemGray4, width: 1),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
