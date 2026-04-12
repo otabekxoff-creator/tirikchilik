@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'providers/language_provider.dart';
 import 'providers/app_provider.dart';
-import 'services/admob_service.dart';
-import 'services/shared_preferences_service.dart';
-import 'utils/app_logger.dart';
-import 'package:logging/logging.dart' as logging;
+import 'core/app_initializer.dart';
 import 'theme/ios_theme.dart';
 import 'l10n/app_localizations.dart';
 import 'routing/app_router.dart';
@@ -16,35 +11,8 @@ import 'routing/app_router.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables
-  await dotenv.load(fileName: '.env');
-
-  // Initialize SharedPreferences
-  await SharedPreferencesService.instance.init();
-
-  // Firebase is initialized in web/index.html
-  // No need to initialize here for web platform
-
-  // Initialize App Logger
-  AppLogger.init(level: logging.Level.INFO);
-
-  // Initialize AdMob
-  final adMob = AdMobService();
-  await adMob.initialize();
-  // Only load ads on mobile platforms
-  if (adMob.isInitialized) {
-    await adMob.loadInterstitialAd();
-    await adMob.loadRewardedAd();
-  }
-
-  // Set preferred orientations
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-
-  // Set system UI overlay style (iOS style)
-  SystemChrome.setSystemUIOverlayStyle(IOSTheme.lightOverlay);
+  // Initialize app
+  await AppInitializer.initialize();
 
   runApp(
     ProviderScope(
