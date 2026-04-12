@@ -34,9 +34,19 @@ class AppLogger {
     _logger.severe(message);
   }
 
+  /// Logs an error with optional exception and stack trace.
+  static void error(String message, [dynamic error, StackTrace? stackTrace]) {
+    _logger.severe(message, error, stackTrace);
+  }
+
   /// Logs a message at the FINE level.
   static void fine(String message) {
     _logger.fine(message);
+  }
+
+  /// Logs a message at the FINEST level (debug).
+  static void debug(String message) {
+    _logger.finest(message);
   }
 
   /// Logs a message at the ALL level.

@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/user_model.dart';
 import 'shared_preferences_service.dart';
 import '../constants/app_constants.dart';
+import '../utils/app_logger.dart';
 
 class AuthService {
   static const String _usersKey = AppConstants.usersKey;
@@ -124,9 +125,17 @@ class AuthService {
   }
 
   Future<UserModel?> adminLogin(String emailOrPhone, String password) async {
-    // Admin credentials from environment variables
-    final adminLogin = dotenv.env['ADMIN_LOGIN'] ?? 'Admin777';
-    final adminPassword = dotenv.env['ADMIN_PASSWORD'] ?? 'admin7777';
+    // Admin credentials from environment variables only - NO FALLBACK for security
+    final adminLogin = dotenv.env['ADMIN_LOGIN'];
+    final adminPassword = dotenv.env['ADMIN_PASSWORD'];
+
+    // If admin credentials not configured in .env, reject admin login
+    if (adminLogin == null || adminPassword == null) {
+      AppLogger.warning(
+        'Admin credentials not configured in environment variables',
+      );
+      return null;
+    }
 
     if (emailOrPhone == adminLogin && password == adminPassword) {
       final adminUser = UserModel(

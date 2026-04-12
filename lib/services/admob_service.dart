@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../utils/app_logger.dart';
 
@@ -13,12 +14,14 @@ class AdMobService {
   factory AdMobService() => _instance;
   AdMobService._internal();
 
-  // Ad unit IDs - test IDs for development
-  static const String _bannerAdUnitId =
-      'ca-app-pub-3940256099942544/6300978111';
-  static const String _interstitialAdUnitId =
+  // Ad unit IDs from .env or use test IDs
+  static String get _bannerAdUnitId =>
+      dotenv.env['ADMOB_BANNER_ID'] ?? 'ca-app-pub-3940256099942544/6300978111';
+  static String get _interstitialAdUnitId =>
+      dotenv.env['ADMOB_INTERSTITIAL_ID'] ??
       'ca-app-pub-3940256099942544/1033173712';
-  static const String _rewardedAdUnitId =
+  static String get _rewardedAdUnitId =>
+      dotenv.env['ADMOB_REWARDED_ID'] ??
       'ca-app-pub-3940256099942544/5224354917';
 
   BannerAd? _bannerAd;
