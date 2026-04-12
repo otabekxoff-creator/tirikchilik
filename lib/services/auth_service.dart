@@ -5,11 +5,12 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/user_model.dart';
 import 'shared_preferences_service.dart';
+import '../constants/app_constants.dart';
 
 class AuthService {
-  static const String _usersKey = 'users';
-  static const String _currentUserKey = 'current_user';
-  static const String _saltKey = 'password_salt';
+  static const String _usersKey = AppConstants.usersKey;
+  static const String _currentUserKey = AppConstants.currentUserKey;
+  static const String _saltKey = AppConstants.saltKey;
 
   UserModel? _currentUser;
   UserModel? get currentUser => _currentUser;

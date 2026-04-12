@@ -1,9 +1,10 @@
 import 'dart:convert';
 import '../models/wallet_model.dart';
 import 'shared_preferences_service.dart';
+import '../constants/app_constants.dart';
 
 class WalletService {
-  static const String _walletsKey = 'wallets';
+  static const String _walletsKey = AppConstants.walletsKey;
 
   Future<WalletModel> getWallet(String userId) async {
     final prefs = SharedPreferencesService.instance.prefs;

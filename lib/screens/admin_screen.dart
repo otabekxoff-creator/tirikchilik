@@ -9,6 +9,7 @@ import '../models/enums.dart';
 import '../theme/ios_theme.dart';
 import '../utils/admin_stats_helper.dart';
 import '../utils/pagination_helper.dart';
+import '../constants/app_constants.dart';
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
@@ -35,7 +36,7 @@ class _AdminScreenState extends State<AdminScreen>
   UserSortOption _sortOption = UserSortOption.newest;
 
   // Pagination
-  final int _usersPerPage = 20;
+  final int _usersPerPage = AppConstants.usersPerPage;
   int _currentPage = 0;
   late List<dynamic> _paginatedUsers;
   bool _hasMoreUsers = false;

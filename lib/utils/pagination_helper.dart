@@ -14,7 +14,10 @@ class PaginationHelper {
     int currentPage,
     int itemsPerPage,
   ) {
-    final endIndex = (currentPage * itemsPerPage + itemsPerPage).clamp(0, items.length);
+    final endIndex = (currentPage * itemsPerPage + itemsPerPage).clamp(
+      0,
+      items.length,
+    );
     return endIndex < items.length;
   }
 }

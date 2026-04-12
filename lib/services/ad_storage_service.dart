@@ -1,9 +1,10 @@
 import 'dart:convert';
 import '../models/ad_model.dart';
 import 'shared_preferences_service.dart';
+import '../constants/app_constants.dart';
 
 class AdStorageService {
-  static const String _adsKey = 'custom_ads';
+  static const String _adsKey = AppConstants.adsKey;
 
   Future<List<Map<String, dynamic>>> getAllAds() async {
     final prefs = SharedPreferencesService.instance.prefs;
