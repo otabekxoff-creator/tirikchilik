@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/app_provider.dart';
 import '../theme/ios_theme.dart';
 import '../routing/app_router.dart';
+import '../services/auth_service.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -19,6 +20,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isAdminLogin = false;
+  final AuthService _authService = AuthService();
 
   @override
   void dispose() {
@@ -58,6 +60,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       notifier.clearError();
     } else if (state.isLoggedIn && mounted) {
       context.go(AppRoutes.home);
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    final user = await _authService.signInWithGoogle();
+    if (user != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Xush kelibsiz, ${user.name}!'),
+          backgroundColor: IOSTheme.systemGreen,
+        ),
+      );
+      context.go(AppRoutes.home);
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Google bilan kirishda xatolik yuz berdi'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -340,6 +362,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ),
                           ),
                         ),
+                        const SizedBox(height: 16),
+                        // Google Sign-In Button
+                        if (!_isAdminLogin)
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: OutlinedButton.icon(
+                              onPressed: _signInWithGoogle,
+                              icon: const Icon(Icons.login, size: 20),
+                              label: const Text('Google bilan kirish'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: IOSTheme.label,
+                                side: BorderSide(
+                                  color: IOSTheme.systemGray4,
+                                  width: 1,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 12,
+                                ),
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),

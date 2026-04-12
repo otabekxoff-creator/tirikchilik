@@ -3,6 +3,9 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
 import '../utils/validators.dart';
 
@@ -11,6 +14,10 @@ class AuthService {
   static const String _currentUserKey = 'current_user';
   static const String _saltKey = 'password_salt';
 
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: 'your-client-id.apps.googleusercontent.com',
+  );
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   UserModel? _currentUser;
   UserModel? get currentUser => _currentUser;
 
@@ -256,5 +263,81 @@ class AuthService {
         createdAt: DateTime.now(),
       ),
     );
+  }
+
+  Future<UserModel?> signInWithGoogle() async {
+    try {
+      // Firebase Google Sign-In
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return null;
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential = await _firebaseAuth
+          .signInWithCredential(credential);
+      final firebaseUser = userCredential.user;
+
+      if (firebaseUser == null) return null;
+
+      final prefs = await SharedPreferences.getInstance();
+      final usersJson = prefs.getString(_usersKey);
+      final users = usersJson != null
+          ? (jsonDecode(usersJson) as List)
+                .map((e) => UserModel.fromJson(e))
+                .toList()
+          : <UserModel>[];
+
+      // Check if user already exists with this email
+      UserModel? existingUser;
+      for (var u in users) {
+        if (u.email == firebaseUser.email) {
+          existingUser = u;
+          break;
+        }
+      }
+
+      UserModel user;
+      if (existingUser != null) {
+        user = existingUser;
+      } else {
+        // Create new user
+        final userId = const Uuid().v4();
+        user = UserModel(
+          id: userId,
+          name: firebaseUser.displayName ?? 'Foydalanuvchi',
+          email: firebaseUser.email ?? '',
+          phone:
+              firebaseUser.phoneNumber ??
+              '998${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
+          createdAt: DateTime.now(),
+          referralCode: _generateReferralCode(),
+        );
+        users.add(user);
+        await prefs.setString(
+          _usersKey,
+          jsonEncode(users.map((e) => e.toJson()).toList()),
+        );
+      }
+
+      // Reset daily ad count if it's a new day
+      if (user.isNewDay) {
+        user = user.copyWith(dailyAdsWatched: 0, lastAdWatchDate: null);
+      }
+
+      await prefs.setString(_currentUserKey, jsonEncode(user.toJson()));
+      _currentUser = user;
+      return user;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> signOutGoogle() async {
+    await _googleSignIn.signOut();
   }
 }
