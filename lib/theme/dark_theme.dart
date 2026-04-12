@@ -21,8 +21,8 @@ class DarkTheme {
   static const Color textDisabled = Color(0xFF666666);
 
   static ThemeData get theme {
-    return ThemeData.dark().copyWith(
-      useMaterial3: true,
+    return ThemeData(
+      brightness: Brightness.dark,
       scaffoldBackgroundColor: darkBackground,
       canvasColor: darkSurface,
       cardColor: darkCard,

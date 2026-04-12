@@ -4,7 +4,6 @@ import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
-import '../models/user_model.dart';
 import '../models/wallet_model.dart';
 import '../utils/app_logger.dart';
 import 'wallet_service.dart';
@@ -218,7 +217,7 @@ class ExportService {
     buffer.writeln();
 
     for (final t in data.transactions) {
-      buffer.writeln('${_formatDateTime(t.date)}');
+      buffer.writeln(_formatDateTime(t.date));
       buffer.writeln('  Turi: ${_transactionTypeToString(t.type)}');
       buffer.writeln('  Summa: ${t.amount.toStringAsFixed(2)} so\'m');
       buffer.writeln('  Tavsif: ${t.description}');

@@ -69,17 +69,28 @@ class PromoCode {
   }
 
   bool isValidForUser(String userId, double userEarnings, int userAds) {
-    if (!isActive) return false;
-    if (currentUses >= maxUses) return false;
+    if (!isActive) {
+      return false;
+    }
+    if (currentUses >= maxUses) {
+      return false;
+    }
 
     final now = DateTime.now();
-    if (now.isBefore(validFrom) || now.isAfter(validUntil)) return false;
-
-    if (allowedUsers != null && !allowedUsers!.contains(userId)) return false;
-
-    if (minEarningsRequired != null && userEarnings < minEarningsRequired!)
+    if (now.isBefore(validFrom) || now.isAfter(validUntil)) {
       return false;
-    if (minAdsRequired != null && userAds < minAdsRequired!) return false;
+    }
+
+    if (allowedUsers != null && !allowedUsers!.contains(userId)) {
+      return false;
+    }
+
+    if (minEarningsRequired != null && userEarnings < minEarningsRequired!) {
+      return false;
+    }
+    if (minAdsRequired != null && userAds < minAdsRequired!) {
+      return false;
+    }
 
     return true;
   }
