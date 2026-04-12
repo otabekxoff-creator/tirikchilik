@@ -1359,7 +1359,7 @@ class _AdminScreenState extends State<AdminScreen>
       text: (ad?['durationSeconds'] ?? 30).toString(),
     );
     final rewardController = TextEditingController(
-      text: (ad?['reward'] ?? 0.10).toString(),
+      text: (ad?['reward'] ?? AppConstants.baseReward).toString(),
     );
     final imageUrlController = TextEditingController(
       text: ad?['imageUrl'] ?? '',

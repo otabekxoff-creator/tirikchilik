@@ -1,5 +1,6 @@
 import 'dart:math';
 import '../models/ad_model.dart';
+import '../constants/app_constants.dart';
 import 'ad_storage_service.dart';
 
 class AdService {
@@ -60,7 +61,7 @@ class AdService {
     Map<String, dynamic> ad, {
     bool isPremium = false,
   }) {
-    double baseReward = (ad['reward'] ?? 0.10).toDouble();
+    double baseReward = (ad['reward'] ?? AppConstants.baseReward).toDouble();
     if (isPremium) {
       baseReward *= 1.5;
     }

@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
+import '../constants/app_constants.dart';
 
 enum AdLevel {
-  oddiy('Oddiy', 0.10, Icons.play_circle_outline, Colors.green),
-  orta("O'rta", 0.25, Icons.star_border, Colors.orange),
-  jiddiy('Jiddiy', 0.50, Icons.workspace_premium, Colors.red);
+  oddiy(
+    'Oddiy',
+    AppConstants.bronzeReward,
+    Icons.play_circle_outline,
+    Colors.green,
+  ),
+  orta("O'rta", AppConstants.silverReward, Icons.star_border, Colors.orange),
+  jiddiy(
+    'Jiddiy',
+    AppConstants.goldReward,
+    Icons.workspace_premium,
+    Colors.red,
+  );
 
   final String label;
   final double reward;
@@ -75,11 +86,7 @@ class DailyStats {
   int adsWatched;
   double earned;
 
-  DailyStats({
-    required this.date,
-    this.adsWatched = 0,
-    this.earned = 0.0,
-  });
+  DailyStats({required this.date, this.adsWatched = 0, this.earned = 0.0});
 
   factory DailyStats.fromJson(Map<String, dynamic> json) {
     return DailyStats(

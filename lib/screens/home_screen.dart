@@ -12,6 +12,7 @@ import '../models/user_model.dart';
 import '../theme/ios_theme.dart';
 import '../routing/app_router.dart';
 import '../utils/navigation_helper.dart';
+import '../constants/app_constants.dart';
 import 'watch_ad_screen.dart';
 import 'leaderboard_screen.dart';
 
@@ -299,7 +300,7 @@ class _HomeTabContentState extends ConsumerState<HomeTabContent>
     // Bugungi reklamalardan earnings
     final todayAds = user.dailyAdsWatched;
     // Simple calculation - har bir ad uchun ~0.10
-    return todayAds * 0.10;
+    return todayAds * AppConstants.baseReward;
   }
 
   int _getStreakDays(UserModel? user) {
