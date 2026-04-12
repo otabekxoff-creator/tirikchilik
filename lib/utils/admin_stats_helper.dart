@@ -14,8 +14,9 @@ class AdminStatsHelper {
     );
     final premiumUsers = users.where((u) => u.isPremium == true).length;
     final activeUsers = users.where((u) {
-      if (u.lastAdWatchDate == null) return false;
-      return DateTime.now().difference(u.lastAdWatchDate!).inDays <= 1;
+      final lastAdWatchDate = u.lastAdWatchDate;
+      if (lastAdWatchDate == null) return false;
+      return DateTime.now().difference(lastAdWatchDate).inDays <= 1;
     }).length;
 
     return {

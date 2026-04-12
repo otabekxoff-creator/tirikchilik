@@ -307,8 +307,9 @@ class _HomeTabContentState extends ConsumerState<HomeTabContent>
     if (user == null) return 0;
     // Simple streak calculation - would need actual streak field in model
     // For now, using total days since lastAdWatchDate
-    if (user.lastAdWatchDate == null) return 0;
-    final daysDiff = DateTime.now().difference(user.lastAdWatchDate!).inDays;
+    final lastAdWatchDate = user.lastAdWatchDate;
+    if (lastAdWatchDate == null) return 0;
+    final daysDiff = DateTime.now().difference(lastAdWatchDate).inDays;
     // If user watched today or yesterday, streak continues
     if (daysDiff <= 1) {
       // This is simplified - real implementation would track streak

@@ -15,10 +15,7 @@ class LoadingIndicator extends StatelessWidget {
           const CircularProgressIndicator(),
           if (message != null) ...[
             const SizedBox(height: 16),
-            Text(
-              message!,
-              style: IOSTheme.body,
-            ),
+            Text(message ?? '', style: IOSTheme.body),
           ],
         ],
       ),

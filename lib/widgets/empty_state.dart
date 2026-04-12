@@ -23,30 +23,20 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 64,
-              color: IOSTheme.tertiaryLabel,
-            ),
+            Icon(icon, size: 64, color: IOSTheme.tertiaryLabel),
             const SizedBox(height: 16),
-            Text(
-              title,
-              style: IOSTheme.headline,
-              textAlign: TextAlign.center,
-            ),
+            Text(title, style: IOSTheme.headline, textAlign: TextAlign.center),
             if (subtitle != null) ...[
               const SizedBox(height: 8),
               Text(
-                subtitle!,
-                style: IOSTheme.body.copyWith(
-                  color: IOSTheme.secondaryLabel,
-                ),
+                subtitle ?? '',
+                style: IOSTheme.body.copyWith(color: IOSTheme.secondaryLabel),
                 textAlign: TextAlign.center,
               ),
             ],
             if (action != null) ...[
               const SizedBox(height: 24),
-              action!,
+              action ?? const SizedBox.shrink(),
             ],
           ],
         ),

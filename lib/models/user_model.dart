@@ -116,10 +116,11 @@ class UserModel {
   }
 
   bool get isNewDay {
+    final lastAdWatchDate = this.lastAdWatchDate;
     if (lastAdWatchDate == null) return true;
     final now = DateTime.now();
-    return lastAdWatchDate!.year != now.year ||
-        lastAdWatchDate!.month != now.month ||
-        lastAdWatchDate!.day != now.day;
+    return lastAdWatchDate.year != now.year ||
+        lastAdWatchDate.month != now.month ||
+        lastAdWatchDate.day != now.day;
   }
 }

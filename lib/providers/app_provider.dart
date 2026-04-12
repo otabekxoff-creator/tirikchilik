@@ -148,7 +148,9 @@ class AppNotifier extends StateNotifier<AppState> {
   }
 
   Future<void> watchAd(AdLevel level) async {
-    if (state.currentUser == null || state.wallet == null) return;
+    final currentUser = state.currentUser;
+    final wallet = state.wallet;
+    if (currentUser == null || wallet == null) return;
 
     if (!state.canWatchAd) {
       state = state.copyWith(
@@ -175,42 +177,44 @@ class AppNotifier extends StateNotifier<AppState> {
     );
 
     await _walletService.addEarning(
-      state.currentUser!.id,
+      currentUser.id,
       reward,
       '${level.label} reklama ko\'rilgan',
       adLevel: level.label,
     );
 
-    final wallet = await _walletService.getWallet(state.currentUser!.id);
+    final updatedWallet = await _walletService.getWallet(currentUser.id);
 
-    final updatedUser = state.currentUser!.copyWith(
-      totalAdsWatched: state.currentUser!.totalAdsWatched + 1,
-      dailyAdsWatched: state.currentUser!.dailyAdsWatched + 1,
+    final updatedUser = currentUser.copyWith(
+      totalAdsWatched: currentUser.totalAdsWatched + 1,
+      dailyAdsWatched: currentUser.dailyAdsWatched + 1,
       lastAdWatchDate: DateTime.now(),
-      totalEarned: state.currentUser!.totalEarned + reward,
+      totalEarned: currentUser.totalEarned + reward,
     );
     await _authService.updateUser(updatedUser);
 
     state = state.copyWith(
       currentUser: updatedUser,
-      wallet: wallet,
+      wallet: updatedWallet,
       isLoading: false,
     );
   }
 
   Future<bool> withdraw(double amount, String method) async {
-    if (state.currentUser == null || state.wallet == null) return false;
+    final currentUser = state.currentUser;
+    final wallet = state.wallet;
+    if (currentUser == null || wallet == null) return false;
 
     state = state.copyWith(isLoading: true);
     final success = await _walletService.withdraw(
-      state.currentUser!.id,
+      currentUser.id,
       amount,
       '$method orqali yechib olish',
     );
 
     if (success) {
-      final wallet = await _walletService.getWallet(state.currentUser!.id);
-      state = state.copyWith(wallet: wallet, isLoading: false);
+      final updatedWallet = await _walletService.getWallet(currentUser.id);
+      state = state.copyWith(wallet: updatedWallet, isLoading: false);
     } else {
       state = state.copyWith(isLoading: false);
     }
@@ -218,11 +222,12 @@ class AppNotifier extends StateNotifier<AppState> {
   }
 
   Future<void> upgradeToPremium() async {
-    if (state.currentUser == null) return;
+    final currentUser = state.currentUser;
+    if (currentUser == null) return;
 
     state = state.copyWith(isLoading: true);
 
-    final updatedUser = state.currentUser!.copyWith(
+    final updatedUser = currentUser.copyWith(
       isPremium: true,
       premiumExpiry: DateTime.now().add(Duration(days: 30)),
     );
