@@ -228,11 +228,7 @@ class EmptyStateWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 80,
-              color: Colors.grey[400],
-            ),
+            Icon(icon, size: 80, color: Colors.grey[400]),
             const SizedBox(height: 24),
             Text(
               title,
@@ -247,19 +243,13 @@ class EmptyStateWidget extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 subtitle!,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 textAlign: TextAlign.center,
               ),
             ],
             if (onAction != null && actionLabel != null) ...[
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: onAction,
-                child: Text(actionLabel!),
-              ),
+              ElevatedButton(onPressed: onAction, child: Text(actionLabel!)),
             ],
           ],
         ),
@@ -273,11 +263,7 @@ class ErrorStateWidget extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
 
-  const ErrorStateWidget({
-    super.key,
-    required this.message,
-    this.onRetry,
-  });
+  const ErrorStateWidget({super.key, required this.message, this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -287,11 +273,7 @@ class ErrorStateWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 80,
-              color: Colors.red[300],
-            ),
+            Icon(Icons.error_outline, size: 80, color: Colors.red[300]),
             const SizedBox(height: 24),
             Text(
               'Xatolik yuz berdi',
@@ -304,10 +286,7 @@ class ErrorStateWidget extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               message,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
             if (onRetry != null) ...[

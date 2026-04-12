@@ -16,7 +16,8 @@ class WalletModel {
       userId: json['userId'] ?? '',
       balance: (json['balance'] ?? 0.0).toDouble(),
       pendingBalance: (json['pendingBalance'] ?? 0.0).toDouble(),
-      transactions: (json['transactions'] as List?)
+      transactions:
+          (json['transactions'] as List?)
               ?.map((e) => Transaction.fromJson(e))
               .toList() ??
           [],

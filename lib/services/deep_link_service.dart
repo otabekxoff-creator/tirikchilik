@@ -21,7 +21,7 @@ class DeepLinkService {
       // Platform channel to get initial link
       const platform = MethodChannel('app.channel.deeplink');
       final String? initialLink = await platform.invokeMethod('getInitialLink');
-      
+
       if (initialLink != null) {
         _handleLink(initialLink);
       }
@@ -55,12 +55,12 @@ class DeepLinkService {
   // Parse referral code from deep link
   String? extractReferralCode(Uri uri) {
     if (uri.pathSegments.isEmpty) return null;
-    
+
     // Format: https://tirikchilik.uz/ref/CODE123
     if (uri.pathSegments.first == 'ref' && uri.pathSegments.length > 1) {
       return uri.pathSegments[1];
     }
-    
+
     // Format: https://tirikchilik.uz/?ref=CODE123
     return uri.queryParameters['ref'];
   }
@@ -98,7 +98,9 @@ class ReferralTracking {
     return ReferralTracking(
       referralCode: json['referralCode'] ?? '',
       referrerUserId: json['referrerUserId'] ?? '',
-      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
+      createdAt: DateTime.parse(
+        json['createdAt'] ?? DateTime.now().toIso8601String(),
+      ),
       clicks: json['clicks'] ?? 0,
       signups: json['signups'] ?? 0,
       totalEarned: (json['totalEarned'] ?? 0.0).toDouble(),

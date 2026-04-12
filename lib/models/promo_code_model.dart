@@ -36,8 +36,12 @@ class PromoCode {
         orElse: () => PromoCodeType.bonus,
       ),
       value: (json['value'] ?? 0.0).toDouble(),
-      validFrom: DateTime.parse(json['validFrom'] ?? DateTime.now().toIso8601String()),
-      validUntil: DateTime.parse(json['validUntil'] ?? DateTime.now().toIso8601String()),
+      validFrom: DateTime.parse(
+        json['validFrom'] ?? DateTime.now().toIso8601String(),
+      ),
+      validUntil: DateTime.parse(
+        json['validUntil'] ?? DateTime.now().toIso8601String(),
+      ),
       maxUses: json['maxUses'] ?? 100,
       currentUses: json['currentUses'] ?? 0,
       isActive: json['isActive'] ?? true,
@@ -67,15 +71,16 @@ class PromoCode {
   bool isValidForUser(String userId, double userEarnings, int userAds) {
     if (!isActive) return false;
     if (currentUses >= maxUses) return false;
-    
+
     final now = DateTime.now();
     if (now.isBefore(validFrom) || now.isAfter(validUntil)) return false;
-    
+
     if (allowedUsers != null && !allowedUsers!.contains(userId)) return false;
-    
-    if (minEarningsRequired != null && userEarnings < minEarningsRequired!) return false;
+
+    if (minEarningsRequired != null && userEarnings < minEarningsRequired!)
+      return false;
     if (minAdsRequired != null && userAds < minAdsRequired!) return false;
-    
+
     return true;
   }
 
@@ -94,10 +99,10 @@ class PromoCode {
 }
 
 enum PromoCodeType {
-  bonus,          // Direct so'm bonus
-  multiplier,     // Earnings multiplier for X hours
-  premiumDiscount,// Premium subscription discount %
-  freePremiumDays,// Free premium days
+  bonus, // Direct so'm bonus
+  multiplier, // Earnings multiplier for X hours
+  premiumDiscount, // Premium subscription discount %
+  freePremiumDays, // Free premium days
 }
 
 class UserPromoCode {
@@ -117,7 +122,9 @@ class UserPromoCode {
     return UserPromoCode(
       userId: json['userId'] ?? '',
       promoCode: json['promoCode'] ?? '',
-      usedAt: DateTime.parse(json['usedAt'] ?? DateTime.now().toIso8601String()),
+      usedAt: DateTime.parse(
+        json['usedAt'] ?? DateTime.now().toIso8601String(),
+      ),
       rewardReceived: (json['rewardReceived'] ?? 0.0).toDouble(),
     );
   }

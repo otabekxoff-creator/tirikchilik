@@ -66,7 +66,7 @@ class PromoCodeService {
   Future<void> initializeDefaultCodes() async {
     final prefs = SharedPreferencesService.instance.prefs;
     final key = 'promo_codes_initialized';
-    
+
     if (prefs.getBool(key) ?? false) return;
 
     final codes = await _getAllPromoCodes();
@@ -74,7 +74,7 @@ class PromoCodeService {
       await _saveAllPromoCodes(_defaultPromoCodes);
       AppLogger.info('Default promo codes initialized');
     }
-    
+
     await prefs.setBool(key, true);
   }
 
@@ -104,7 +104,9 @@ class PromoCodeService {
   Future<PromoCode?> getPromoCode(String code) async {
     final codes = await _getAllPromoCodes();
     try {
-      return codes.firstWhere((c) => c.code.toUpperCase() == code.toUpperCase());
+      return codes.firstWhere(
+        (c) => c.code.toUpperCase() == code.toUpperCase(),
+      );
     } catch (e) {
       return null;
     }
@@ -113,7 +115,7 @@ class PromoCodeService {
   Future<List<PromoCode>> getAllActiveCodes() async {
     final codes = await _getAllPromoCodes();
     final now = DateTime.now();
-    
+
     return codes.where((c) {
       return c.isActive &&
           c.currentUses < c.maxUses &&
@@ -132,7 +134,9 @@ class PromoCodeService {
     try {
       final List<dynamic> list = jsonDecode(json);
       final userCodes = list.map((e) => UserPromoCode.fromJson(e)).toList();
-      return userCodes.any((uc) => uc.promoCode.toUpperCase() == code.toUpperCase());
+      return userCodes.any(
+        (uc) => uc.promoCode.toUpperCase() == code.toUpperCase(),
+      );
     } catch (e) {
       return false;
     }
@@ -153,29 +157,46 @@ class PromoCodeService {
     }
   }
 
-  Future<void> _recordPromoCodeUse(String userId, String code, double reward) async {
+  Future<void> _recordPromoCodeUse(
+    String userId,
+    String code,
+    double reward,
+  ) async {
     final prefs = SharedPreferencesService.instance.prefs;
     final key = 'user_promo_codes_$userId';
-    
-    final history = await getUserPromoCodeHistory(userId);
-    history.add(UserPromoCode(
-      userId: userId,
-      promoCode: code,
-      usedAt: DateTime.now(),
-      rewardReceived: reward,
-    ));
 
-    await prefs.setString(key, jsonEncode(history.map((e) => e.toJson()).toList()));
+    final history = await getUserPromoCodeHistory(userId);
+    history.add(
+      UserPromoCode(
+        userId: userId,
+        promoCode: code,
+        usedAt: DateTime.now(),
+        rewardReceived: reward,
+      ),
+    );
+
+    await prefs.setString(
+      key,
+      jsonEncode(history.map((e) => e.toJson()).toList()),
+    );
   }
 
-  Future<Map<String, dynamic>> applyPromoCode(String userId, String code, UserModel user) async {
+  Future<Map<String, dynamic>> applyPromoCode(
+    String userId,
+    String code,
+    UserModel user,
+  ) async {
     final promoCode = await getPromoCode(code);
 
     if (promoCode == null) {
       return {'success': false, 'message': 'Promo kod topilmadi'};
     }
 
-    if (!promoCode.isValidForUser(userId, user.totalEarned, user.totalAdsWatched)) {
+    if (!promoCode.isValidForUser(
+      userId,
+      user.totalEarned,
+      user.totalAdsWatched,
+    )) {
       if (!promoCode.isActive) {
         return {'success': false, 'message': 'Promo kod faol emas'};
       }
@@ -189,17 +210,30 @@ class PromoCodeService {
       if (now.isAfter(promoCode.validUntil)) {
         return {'success': false, 'message': 'Promo kod muddati tugagan'};
       }
-      if (promoCode.minEarningsRequired != null && user.totalEarned < promoCode.minEarningsRequired!) {
-        return {'success': false, 'message': 'Minimal ${promoCode.minEarningsRequired} so\'m ishlash kerak'};
+      if (promoCode.minEarningsRequired != null &&
+          user.totalEarned < promoCode.minEarningsRequired!) {
+        return {
+          'success': false,
+          'message':
+              'Minimal ${promoCode.minEarningsRequired} so\'m ishlash kerak',
+        };
       }
-      if (promoCode.minAdsRequired != null && user.totalAdsWatched < promoCode.minAdsRequired!) {
-        return {'success': false, 'message': 'Minimal ${promoCode.minAdsRequired} ta reklama ko\'rish kerak'};
+      if (promoCode.minAdsRequired != null &&
+          user.totalAdsWatched < promoCode.minAdsRequired!) {
+        return {
+          'success': false,
+          'message':
+              'Minimal ${promoCode.minAdsRequired} ta reklama ko\'rish kerak',
+        };
       }
       return {'success': false, 'message': 'Promo kodni ishlatib bo\'lmaydi'};
     }
 
     if (await hasUserUsedCode(userId, code)) {
-      return {'success': false, 'message': 'Siz bu kodni allaqachon ishlatgansiz'};
+      return {
+        'success': false,
+        'message': 'Siz bu kodni allaqachon ishlatgansiz',
+      };
     }
 
     // Apply the promo code
@@ -208,23 +242,31 @@ class PromoCodeService {
 
     switch (promoCode.type) {
       case PromoCodeType.bonus:
-        await _walletService.addBonus(userId, promoCode.value, 'Promo kod: ${promoCode.code}');
+        await _walletService.addBonus(
+          userId,
+          promoCode.value,
+          'Promo kod: ${promoCode.code}',
+        );
         reward = promoCode.value;
-        message = '${promoCode.value.toStringAsFixed(0)} so\'m bonus qo\'shildi';
+        message =
+            '${promoCode.value.toStringAsFixed(0)} so\'m bonus qo\'shildi';
         break;
       case PromoCodeType.multiplier:
         // Store multiplier in preferences for later use
         final prefs = SharedPreferencesService.instance.prefs;
         await prefs.setDouble('earnings_multiplier_$userId', promoCode.value);
-        await prefs.setString('multiplier_expires_$userId', 
-          DateTime.now().add(const Duration(hours: 24)).toIso8601String());
+        await prefs.setString(
+          'multiplier_expires_$userId',
+          DateTime.now().add(const Duration(hours: 24)).toIso8601String(),
+        );
         message = '${promoCode.value}x daromad ko\'paytirgichi 24 soat faol';
         break;
       case PromoCodeType.premiumDiscount:
         // Store discount for premium purchase
         final prefs = SharedPreferencesService.instance.prefs;
         await prefs.setDouble('premium_discount_$userId', promoCode.value);
-        message = 'Premium obunaga ${promoCode.value.toStringAsFixed(0)}% chegirma';
+        message =
+            'Premium obunaga ${promoCode.value.toStringAsFixed(0)}% chegirma';
         break;
       case PromoCodeType.freePremiumDays:
         // Give free premium days
@@ -271,16 +313,16 @@ class PromoCodeService {
   Future<double?> getActiveMultiplier(String userId) async {
     final prefs = SharedPreferencesService.instance.prefs;
     final expiresStr = prefs.getString('multiplier_expires_$userId');
-    
+
     if (expiresStr == null) return null;
-    
+
     final expires = DateTime.parse(expiresStr);
     if (DateTime.now().isAfter(expires)) {
       await prefs.remove('earnings_multiplier_$userId');
       await prefs.remove('multiplier_expires_$userId');
       return null;
     }
-    
+
     return prefs.getDouble('earnings_multiplier_$userId');
   }
 

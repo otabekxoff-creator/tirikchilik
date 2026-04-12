@@ -78,8 +78,10 @@ class ErrorHandler {
   }
 
   void _logError(AppError error, String? context) {
-    final message = context != null ? '[$context] ${error.message}' : error.message;
-    
+    final message = context != null
+        ? '[$context] ${error.message}'
+        : error.message;
+
     switch (error.severity) {
       case ErrorSeverity.info:
         AppLogger.info(message);
@@ -91,13 +93,18 @@ class ErrorHandler {
         AppLogger.error(message, error.originalError, error.stackTrace);
         break;
       case ErrorSeverity.critical:
-        AppLogger.error('CRITICAL: $message', error.originalError, error.stackTrace);
+        AppLogger.error(
+          'CRITICAL: $message',
+          error.originalError,
+          error.stackTrace,
+        );
         break;
     }
   }
 
   void _reportToCrashlytics(AppError error) {
-    if (error.severity == ErrorSeverity.error || error.severity == ErrorSeverity.critical) {
+    if (error.severity == ErrorSeverity.error ||
+        error.severity == ErrorSeverity.critical) {
       FirebaseService().recordError(
         error.originalError ?? error,
         error.stackTrace,
@@ -155,10 +162,13 @@ class ErrorHandler {
 
   void _reportError(AppError error) {
     // Send error report to server
-    FirebaseService().logEvent('error_reported', parameters: {
-      'error_code': error.code ?? 'unknown',
-      'error_message': error.message,
-    });
+    FirebaseService().logEvent(
+      'error_reported',
+      parameters: {
+        'error_code': error.code ?? 'unknown',
+        'error_message': error.message,
+      },
+    );
   }
 
   // Helper method for async operations

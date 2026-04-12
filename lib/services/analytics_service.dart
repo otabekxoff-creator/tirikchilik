@@ -82,7 +82,7 @@ class AnalyticsService {
   Future<void> recordDailyStats(AnalyticsData data) async {
     final prefs = SharedPreferencesService.instance.prefs;
     final key = 'analytics_${_formatDate(data.date)}';
-    
+
     await prefs.setString(key, jsonEncode(data.toJson()));
     AppLogger.info('Analytics recorded for ${data.date}');
   }
@@ -90,10 +90,10 @@ class AnalyticsService {
   Future<AnalyticsData?> getDailyStats(DateTime date) async {
     final prefs = SharedPreferencesService.instance.prefs;
     final key = 'analytics_${_formatDate(date)}';
-    
+
     final json = prefs.getString(key);
     if (json == null) return null;
-    
+
     try {
       return AnalyticsData.fromJson(jsonDecode(json));
     } catch (e) {
@@ -104,7 +104,7 @@ class AnalyticsService {
 
   Future<List<AnalyticsData>> getStatsRange(DateTime from, DateTime to) async {
     final results = <AnalyticsData>[];
-    
+
     var current = from;
     while (!current.isAfter(to)) {
       final data = await getDailyStats(current);
@@ -113,16 +113,16 @@ class AnalyticsService {
       }
       current = current.add(const Duration(days: 1));
     }
-    
+
     return results;
   }
 
   Future<AnalyticsData> getTodayStats() async {
     final today = DateTime.now();
     final stats = await getDailyStats(today);
-    
+
     if (stats != null) return stats;
-    
+
     // Calculate from current data
     return await _calculateTodayStats();
   }
@@ -130,27 +130,27 @@ class AnalyticsService {
   Future<AnalyticsData> _calculateTodayStats() async {
     final prefs = SharedPreferencesService.instance.prefs;
     final usersJson = prefs.getString('users');
-    
+
     int totalUsers = 0;
     int todayUsers = 0;
     int totalAds = 0;
     double totalEarnings = 0;
     int premiumCount = 0;
-    
+
     if (usersJson != null) {
       final users = (jsonDecode(usersJson) as List)
           .map((e) => UserModel.fromJson(e))
           .toList();
-      
+
       totalUsers = users.length;
       final today = DateTime.now();
-      
+
       for (final user in users) {
         totalAds += user.totalAdsWatched;
         totalEarnings += user.totalEarned;
-        
+
         if (user.isPremium) premiumCount++;
-        
+
         // Check if user was active today
         if (user.lastAdWatchDate != null) {
           final lastWatch = user.lastAdWatchDate!;
@@ -162,7 +162,7 @@ class AnalyticsService {
         }
       }
     }
-    
+
     return AnalyticsData(
       date: DateTime.now(),
       activeUsers: todayUsers,
@@ -178,40 +178,50 @@ class AnalyticsService {
     final yesterday = await getDailyStats(
       DateTime.now().subtract(const Duration(days: 1)),
     );
-    
+
     // Calculate growth
     double userGrowth = 0;
     double earningsGrowth = 0;
-    
+
     if (yesterday != null) {
       if (yesterday.activeUsers > 0) {
-        userGrowth = ((today.activeUsers - yesterday.activeUsers) / yesterday.activeUsers) * 100;
+        userGrowth =
+            ((today.activeUsers - yesterday.activeUsers) /
+                yesterday.activeUsers) *
+            100;
       }
       if (yesterday.totalEarnings > 0) {
-        earningsGrowth = ((today.totalEarnings - yesterday.totalEarnings) / yesterday.totalEarnings) * 100;
+        earningsGrowth =
+            ((today.totalEarnings - yesterday.totalEarnings) /
+                yesterday.totalEarnings) *
+            100;
       }
     }
-    
+
     // Get top users
     final topUsers = await getTopUsers(limit: 10);
-    
+
     // Get 7-day trend
     final last7Days = await getStatsRange(
       DateTime.now().subtract(const Duration(days: 7)),
       DateTime.now(),
     );
-    
+
     return {
       'today': today.toJson(),
       'yesterday': yesterday?.toJson(),
       'userGrowth': userGrowth.toStringAsFixed(1),
       'earningsGrowth': earningsGrowth.toStringAsFixed(1),
-      'topUsers': topUsers.map((u) => {
-        'id': u.userId,
-        'name': u.userName,
-        'ads': u.adsWatched,
-        'earnings': u.earnings,
-      }).toList(),
+      'topUsers': topUsers
+          .map(
+            (u) => {
+              'id': u.userId,
+              'name': u.userName,
+              'ads': u.adsWatched,
+              'earnings': u.earnings,
+            },
+          )
+          .toList(),
       'trend7Days': last7Days.map((d) => d.toJson()).toList(),
     };
   }
@@ -219,66 +229,68 @@ class AnalyticsService {
   Future<List<UserStats>> getTopUsers({int limit = 10}) async {
     final prefs = SharedPreferencesService.instance.prefs;
     final usersJson = prefs.getString('users');
-    
+
     if (usersJson == null) return [];
-    
+
     final users = (jsonDecode(usersJson) as List)
         .map((e) => UserModel.fromJson(e))
         .toList();
-    
+
     final stats = <UserStats>[];
-    
+
     for (final user in users) {
       // Calculate referrals
       final referrals = users.where((u) => u.referredBy == user.id).length;
-      
-      stats.add(UserStats(
-        userId: user.id,
-        userName: user.name,
-        adsWatched: user.totalAdsWatched,
-        earnings: user.totalEarned,
-        referrals: referrals,
-        lastActive: user.lastAdWatchDate ?? user.createdAt,
-      ));
+
+      stats.add(
+        UserStats(
+          userId: user.id,
+          userName: user.name,
+          adsWatched: user.totalAdsWatched,
+          earnings: user.totalEarned,
+          referrals: referrals,
+          lastActive: user.lastAdWatchDate ?? user.createdAt,
+        ),
+      );
     }
-    
+
     // Sort by ads watched (descending)
     stats.sort((a, b) => b.adsWatched.compareTo(a.adsWatched));
-    
+
     return stats.take(limit).toList();
   }
 
   Future<Map<String, dynamic>> getRevenueStats() async {
     final prefs = SharedPreferencesService.instance.prefs;
     final usersJson = prefs.getString('users');
-    
+
     double totalPaid = 0;
     double pendingWithdrawals = 0;
     int withdrawalCount = 0;
-    
+
     if (usersJson != null) {
       final users = (jsonDecode(usersJson) as List)
           .map((e) => UserModel.fromJson(e))
           .toList();
-      
+
       for (final user in users) {
         final walletJson = prefs.getString('wallet_${user.id}');
         if (walletJson != null) {
           final wallet = WalletModel.fromJson(jsonDecode(walletJson));
           totalPaid += wallet.balance;
           pendingWithdrawals += wallet.pendingBalance;
-          
+
           withdrawalCount += wallet.transactions
               .where((t) => t.type == TransactionType.withdrawal)
               .length;
         }
       }
     }
-    
+
     // Calculate estimated ad revenue
     final stats = await getTodayStats();
     final estimatedAdRevenue = stats.totalAdsWatched * 0.001; // $0.001 per ad
-    
+
     return {
       'totalPaid': totalPaid,
       'pendingWithdrawals': pendingWithdrawals,
@@ -291,9 +303,9 @@ class AnalyticsService {
   Future<void> incrementNewUser() async {
     final today = DateTime.now();
     var stats = await getDailyStats(today);
-    
+
     stats ??= await _calculateTodayStats();
-    
+
     final updated = AnalyticsData(
       date: stats.date,
       newUsers: stats.newUsers + 1,
@@ -304,16 +316,16 @@ class AnalyticsService {
       premiumUsers: stats.premiumUsers,
       revenue: stats.revenue,
     );
-    
+
     await recordDailyStats(updated);
   }
 
   Future<void> recordPremiumPurchase(double amount) async {
     final today = DateTime.now();
     var stats = await getDailyStats(today);
-    
+
     stats ??= await _calculateTodayStats();
-    
+
     final updated = AnalyticsData(
       date: stats.date,
       newUsers: stats.newUsers,
@@ -324,7 +336,7 @@ class AnalyticsService {
       premiumUsers: stats.premiumUsers + 1,
       revenue: stats.revenue + amount,
     );
-    
+
     await recordDailyStats(updated);
   }
 

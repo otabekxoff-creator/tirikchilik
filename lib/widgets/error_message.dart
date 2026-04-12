@@ -5,11 +5,7 @@ class ErrorMessage extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
 
-  const ErrorMessage({
-    super.key,
-    required this.message,
-    this.onRetry,
-  });
+  const ErrorMessage({super.key, required this.message, this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -19,17 +15,9 @@ class ErrorMessage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: IOSTheme.systemRed,
-            ),
+            Icon(Icons.error_outline, size: 64, color: IOSTheme.systemRed),
             const SizedBox(height: 16),
-            Text(
-              message,
-              style: IOSTheme.body,
-              textAlign: TextAlign.center,
-            ),
+            Text(message, style: IOSTheme.body, textAlign: TextAlign.center),
             if (onRetry != null) ...[
               const SizedBox(height: 24),
               ElevatedButton(

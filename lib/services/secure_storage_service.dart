@@ -3,7 +3,8 @@ import 'package:encrypt/encrypt.dart' as encrypt;
 import '../utils/app_logger.dart';
 
 class SecureStorageService {
-  static final SecureStorageService _instance = SecureStorageService._internal();
+  static final SecureStorageService _instance =
+      SecureStorageService._internal();
   factory SecureStorageService() => _instance;
   SecureStorageService._internal();
 
@@ -36,7 +37,9 @@ class SecureStorageService {
 
       _key = encrypt.Key.fromBase64(keyString);
       _iv = encrypt.IV.fromLength(16);
-      _encrypter = encrypt.Encrypter(encrypt.AES(_key, mode: encrypt.AESMode.cbc));
+      _encrypter = encrypt.Encrypter(
+        encrypt.AES(_key, mode: encrypt.AESMode.cbc),
+      );
 
       AppLogger.info('SecureStorage initialized');
     } catch (e, stack) {

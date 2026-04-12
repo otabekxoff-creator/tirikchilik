@@ -8,15 +8,13 @@ class FileSizeHelper {
     final file = File(filePath);
     final sizeInBytes = file.lengthSync();
     final lines = file.readAsLinesSync().length;
-    return {
-      'bytes': sizeInBytes,
-      'lines': lines,
-    };
+    return {'bytes': sizeInBytes, 'lines': lines};
   }
 
   static bool isFileTooLarge(String filePath) {
     final size = getFileSize(filePath);
-    return size['bytes']! > maxRecommendedBytes || size['lines']! > maxRecommendedLines;
+    return size['bytes']! > maxRecommendedBytes ||
+        size['lines']! > maxRecommendedLines;
   }
 
   static String formatFileSize(int bytes) {

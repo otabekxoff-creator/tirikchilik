@@ -9,11 +9,7 @@ import '../models/wallet_model.dart';
 import '../utils/app_logger.dart';
 import 'wallet_service.dart';
 
-enum ExportFormat {
-  csv,
-  json,
-  pdf,
-}
+enum ExportFormat { csv, json, pdf }
 
 class ExportData {
   final DateTime from;
@@ -97,7 +93,11 @@ class ExportService {
     }).toList();
 
     final earnings = filteredTransactions
-        .where((t) => t.type == TransactionType.earned || t.type == TransactionType.bonus)
+        .where(
+          (t) =>
+              t.type == TransactionType.earned ||
+              t.type == TransactionType.bonus,
+        )
         .fold<double>(0.0, (sum, t) => sum + t.amount);
 
     final withdrawals = filteredTransactions
@@ -169,18 +169,23 @@ class ExportService {
         'totalAds': data.totalAds,
         'transactionCount': data.transactions.length,
       },
-      'transactions': data.transactions.map((t) => {
-        'id': t.id,
-        'date': t.date.toIso8601String(),
-        'type': t.type.toString(),
-        'amount': t.amount,
-        'description': t.description,
-        'adLevel': t.adLevel,
-      }).toList(),
+      'transactions': data.transactions
+          .map(
+            (t) => {
+              'id': t.id,
+              'date': t.date.toIso8601String(),
+              'type': t.type.toString(),
+              'amount': t.amount,
+              'description': t.description,
+              'adLevel': t.adLevel,
+            },
+          )
+          .toList(),
     };
 
     final directory = await getApplicationDocumentsDirectory();
-    final fileName = 'tirikchilik_${userId}_${_formatDate(DateTime.now())}.json';
+    final fileName =
+        'tirikchilik_${userId}_${_formatDate(DateTime.now())}.json';
     final file = File('${directory.path}/$fileName');
     await file.writeAsString(jsonEncode(jsonData));
 
@@ -190,7 +195,7 @@ class ExportService {
   Future<String?> _exportToPdf(String userId, ExportData data) async {
     // For PDF export, we would typically use a package like pdf: ^3.10.0
     // For now, we'll create a simple text file as a placeholder
-    
+
     final buffer = StringBuffer();
     buffer.writeln('TIRIKCHILIK - TRANZAKSIYALAR HISOBOTI');
     buffer.writeln('=====================================');
@@ -202,7 +207,9 @@ class ExportService {
     buffer.writeln();
     buffer.writeln('JAMI MA\'LUMOTLAR:');
     buffer.writeln('  Daromad: ${data.totalEarnings.toStringAsFixed(2)} so\'m');
-    buffer.writeln('  Yechib olish: ${data.totalWithdrawals.toStringAsFixed(2)} so\'m');
+    buffer.writeln(
+      '  Yechib olish: ${data.totalWithdrawals.toStringAsFixed(2)} so\'m',
+    );
     buffer.writeln('  Reklamalar: ${data.totalAds} ta');
     buffer.writeln();
     buffer.writeln('-------------------------------------');
@@ -259,9 +266,13 @@ class ExportService {
     return [ExportFormat.csv, ExportFormat.json, ExportFormat.pdf];
   }
 
-  Future<String> getExportSummary(String userId, DateTime from, DateTime to) async {
+  Future<String> getExportSummary(
+    String userId,
+    DateTime from,
+    DateTime to,
+  ) async {
     final data = await _getExportData(userId, from, to);
-    
+
     return '''
 Hisobot davri: ${_formatDate(from)} - ${_formatDate(to)}
 
@@ -269,6 +280,7 @@ Jami tranzaksiyalar: ${data.transactions.length}
 Jami daromad: ${data.totalEarnings.toStringAsFixed(2)} so'm
 Jami yechib olish: ${data.totalWithdrawals.toStringAsFixed(2)} so'm
 Ko'rilgan reklamalar: ${data.totalAds} ta
-'''.trim();
+'''
+        .trim();
   }
 }

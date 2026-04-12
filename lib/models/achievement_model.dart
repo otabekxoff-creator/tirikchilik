@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum AchievementType {
-  adsWatched,
-  streak,
-  referrals,
-  earnings,
-  special,
-}
+enum AchievementType { adsWatched, streak, referrals, earnings, special }
 
 class Achievement {
   final String id;
@@ -222,7 +216,9 @@ class UserAchievement {
   factory UserAchievement.fromJson(Map<String, dynamic> json) {
     return UserAchievement(
       achievementId: json['achievementId'] ?? '',
-      unlockedAt: DateTime.parse(json['unlockedAt'] ?? DateTime.now().toIso8601String()),
+      unlockedAt: DateTime.parse(
+        json['unlockedAt'] ?? DateTime.now().toIso8601String(),
+      ),
       rewardClaimed: json['rewardClaimed'] ?? false,
     );
   }
@@ -253,8 +249,11 @@ class StreakInfo {
     return StreakInfo(
       currentStreak: json['currentStreak'] ?? 0,
       longestStreak: json['longestStreak'] ?? 0,
-      lastLoginDate: DateTime.parse(json['lastLoginDate'] ?? DateTime.now().toIso8601String()),
-      loginDates: (json['loginDates'] as List?)
+      lastLoginDate: DateTime.parse(
+        json['lastLoginDate'] ?? DateTime.now().toIso8601String(),
+      ),
+      loginDates:
+          (json['loginDates'] as List?)
               ?.map((e) => DateTime.parse(e))
               .toList() ??
           [],
@@ -273,10 +272,15 @@ class StreakInfo {
   bool get isStreakActive {
     final now = DateTime.now();
     final yesterday = now.subtract(const Duration(days: 1));
-    final lastLogin = DateTime(lastLoginDate.year, lastLoginDate.month, lastLoginDate.day);
+    final lastLogin = DateTime(
+      lastLoginDate.year,
+      lastLoginDate.month,
+      lastLoginDate.day,
+    );
     final today = DateTime(now.year, now.month, now.day);
-    
-    return lastLogin.isAtSameMomentAs(yesterday) || lastLogin.isAtSameMomentAs(today);
+
+    return lastLogin.isAtSameMomentAs(yesterday) ||
+        lastLogin.isAtSameMomentAs(today);
   }
 }
 
