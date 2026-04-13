@@ -33,7 +33,7 @@ class ProfileScreen extends ConsumerWidget {
         slivers: [
           // iOS Large Navigation Bar
           SliverAppBar(
-            expandedHeight: 120,
+            expandedHeight: 100,
             floating: true,
             pinned: true,
             backgroundColor: isDark
@@ -62,16 +62,14 @@ class ProfileScreen extends ConsumerWidget {
                 },
               ),
             ],
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                'Profil',
-                style: IOSTheme.largeTitle.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
-                ),
+            title: Text(
+              'Profil',
+              style: IOSTheme.headline.copyWith(
+                fontWeight: FontWeight.w700,
+                color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
               ),
-              centerTitle: true,
             ),
+            centerTitle: true,
           ),
           // Profile Card
           SliverToBoxAdapter(

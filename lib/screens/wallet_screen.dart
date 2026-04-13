@@ -22,7 +22,7 @@ class WalletScreen extends ConsumerWidget {
         slivers: [
           // iOS Large Navigation Bar
           SliverAppBar(
-            expandedHeight: 120,
+            expandedHeight: 100,
             floating: true,
             pinned: true,
             backgroundColor: isDark
@@ -36,16 +36,14 @@ class WalletScreen extends ConsumerWidget {
               ),
               onPressed: () => Navigator.pop(context),
             ),
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                'Hamyon',
-                style: IOSTheme.largeTitle.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
-                ),
+            title: Text(
+              'Hamyon',
+              style: IOSTheme.headline.copyWith(
+                fontWeight: FontWeight.w700,
+                color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
               ),
-              centerTitle: true,
             ),
+            centerTitle: true,
           ),
           // Balance Card
           SliverToBoxAdapter(
