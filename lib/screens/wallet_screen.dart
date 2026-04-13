@@ -12,9 +12,12 @@ class WalletScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final provider = ref.watch(appProviderProvider);
     final wallet = provider.wallet;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: IOSTheme.systemGroupedBackground,
+      backgroundColor: isDark
+          ? IOSTheme.darkSystemGroupedBackground
+          : IOSTheme.systemGroupedBackground,
       body: CustomScrollView(
         slivers: [
           // iOS Large Navigation Bar
@@ -22,10 +25,15 @@ class WalletScreen extends ConsumerWidget {
             expandedHeight: 120,
             floating: true,
             pinned: true,
-            backgroundColor: IOSTheme.systemGroupedBackground,
+            backgroundColor: isDark
+                ? IOSTheme.darkSystemGroupedBackground
+                : IOSTheme.systemGroupedBackground,
             elevation: 0,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios, color: IOSTheme.systemBlue),
+              icon: Icon(
+                Icons.arrow_back_ios,
+                color: isDark ? IOSTheme.darkLabel : IOSTheme.systemBlue,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
             flexibleSpace: FlexibleSpaceBar(
@@ -33,7 +41,7 @@ class WalletScreen extends ConsumerWidget {
                 'Hamyon',
                 style: IOSTheme.largeTitle.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: IOSTheme.label,
+                  color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
                 ),
               ),
               centerTitle: true,
@@ -106,6 +114,7 @@ class WalletScreen extends ConsumerWidget {
                     'Tranzaksiyalar',
                     style: IOSTheme.headline.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
                     ),
                   ),
                   TextButton(
@@ -116,7 +125,9 @@ class WalletScreen extends ConsumerWidget {
                     child: Text(
                       'Barchasi',
                       style: IOSTheme.body.copyWith(
-                        color: IOSTheme.systemBlue,
+                        color: isDark
+                            ? IOSTheme.systemCyan
+                            : IOSTheme.systemBlue,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -130,10 +141,10 @@ class WalletScreen extends ConsumerWidget {
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 if (wallet?.transactions.isEmpty ?? true) {
-                  return _buildEmptyState();
+                  return _buildEmptyState(isDark);
                 }
                 final tx = wallet!.transactions[index];
-                return _buildIOSTransactionItem(tx);
+                return _buildIOSTransactionItem(tx, isDark);
               },
               childCount: wallet?.transactions.isEmpty ?? true
                   ? 1
@@ -186,12 +197,14 @@ class WalletScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isDark) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: IOSTheme.systemBackground,
+        color: isDark
+            ? IOSTheme.darkSecondarySystemBackground
+            : IOSTheme.systemBackground,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -200,26 +213,34 @@ class WalletScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: IOSTheme.systemGray6,
+              color: isDark
+                  ? IOSTheme.darkTertiarySystemBackground
+                  : IOSTheme.systemGray6,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Icon(
               Icons.receipt_long_outlined,
               size: 48,
-              color: IOSTheme.secondaryLabel,
+              color: isDark
+                  ? IOSTheme.darkSecondaryLabel
+                  : IOSTheme.secondaryLabel,
             ),
           ),
           const SizedBox(height: 16),
           Text(
             'Hali tranzaksiyalar yo\'q',
-            style: IOSTheme.subhead.copyWith(color: IOSTheme.secondaryLabel),
+            style: IOSTheme.subhead.copyWith(
+              color: isDark
+                  ? IOSTheme.darkSecondaryLabel
+                  : IOSTheme.secondaryLabel,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildIOSTransactionItem(Transaction tx) {
+  Widget _buildIOSTransactionItem(Transaction tx, bool isDark) {
     final isPositive =
         tx.type == TransactionType.earned || tx.type == TransactionType.bonus;
     final color = isPositive ? IOSTheme.systemGreen : IOSTheme.systemRed;
@@ -228,7 +249,9 @@ class WalletScreen extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: IOSTheme.systemBackground,
+        color: isDark
+            ? IOSTheme.darkSecondarySystemBackground
+            : IOSTheme.systemBackground,
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
@@ -243,11 +266,18 @@ class WalletScreen extends ConsumerWidget {
         ),
         title: Text(
           tx.description,
-          style: IOSTheme.body.copyWith(fontWeight: FontWeight.w500),
+          style: IOSTheme.body.copyWith(
+            fontWeight: FontWeight.w500,
+            color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+          ),
         ),
         subtitle: Text(
           DateFormat('dd.MM.yyyy HH:mm').format(tx.date),
-          style: IOSTheme.footnote.copyWith(color: IOSTheme.secondaryLabel),
+          style: IOSTheme.footnote.copyWith(
+            color: isDark
+                ? IOSTheme.darkSecondaryLabel
+                : IOSTheme.secondaryLabel,
+          ),
         ),
         trailing: Text(
           '${isPositive ? '+' : '-'}${tx.amount.toStringAsFixed(0)}',

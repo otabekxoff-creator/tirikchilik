@@ -14,16 +14,21 @@ class ProfileScreen extends ConsumerWidget {
     final provider = ref.watch(appProviderProvider);
     final user = provider.currentUser;
     final themeState = ref.watch(themeProviderProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (user == null) {
       return Scaffold(
-        backgroundColor: IOSTheme.systemGroupedBackground,
+        backgroundColor: isDark
+            ? IOSTheme.darkSystemGroupedBackground
+            : IOSTheme.systemGroupedBackground,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      backgroundColor: IOSTheme.systemGroupedBackground,
+      backgroundColor: isDark
+          ? IOSTheme.darkSystemGroupedBackground
+          : IOSTheme.systemGroupedBackground,
       body: CustomScrollView(
         slivers: [
           // iOS Large Navigation Bar
@@ -31,10 +36,15 @@ class ProfileScreen extends ConsumerWidget {
             expandedHeight: 120,
             floating: true,
             pinned: true,
-            backgroundColor: IOSTheme.systemGroupedBackground,
+            backgroundColor: isDark
+                ? IOSTheme.darkSystemGroupedBackground
+                : IOSTheme.systemGroupedBackground,
             elevation: 0,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios, color: IOSTheme.systemBlue),
+              icon: Icon(
+                Icons.arrow_back_ios,
+                color: isDark ? IOSTheme.darkLabel : IOSTheme.systemBlue,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
             actions: [
@@ -57,7 +67,7 @@ class ProfileScreen extends ConsumerWidget {
                 'Profil',
                 style: IOSTheme.largeTitle.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: IOSTheme.label,
+                  color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
                 ),
               ),
               centerTitle: true,
@@ -168,7 +178,7 @@ class ProfileScreen extends ConsumerWidget {
                 'Ma\'lumotlar',
                 style: IOSTheme.headline.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: IOSTheme.label,
+                  color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
                 ),
               ),
             ),
@@ -178,7 +188,9 @@ class ProfileScreen extends ConsumerWidget {
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: IOSTheme.systemBackground,
+                color: isDark
+                    ? IOSTheme.darkSecondarySystemBackground
+                    : IOSTheme.systemBackground,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
@@ -189,28 +201,44 @@ class ProfileScreen extends ConsumerWidget {
                     label: 'Telefon',
                     value: user.phone,
                     isFirst: true,
+                    isDark: isDark,
                   ),
-                  Divider(height: 1, color: IOSTheme.separator, indent: 56),
+                  Divider(
+                    height: 1,
+                    color: isDark ? IOSTheme.darkSeparator : IOSTheme.separator,
+                    indent: 56,
+                  ),
                   _buildIOSInfoTile(
                     icon: Icons.calendar_today_outlined,
                     iconColor: IOSTheme.systemIndigo,
                     label: 'Ro\'yxatdan o\'tgan',
                     value: DateFormat('dd.MM.yyyy').format(user.createdAt),
+                    isDark: isDark,
                   ),
-                  Divider(height: 1, color: IOSTheme.separator, indent: 56),
+                  Divider(
+                    height: 1,
+                    color: isDark ? IOSTheme.darkSeparator : IOSTheme.separator,
+                    indent: 56,
+                  ),
                   _buildIOSInfoTile(
                     icon: Icons.visibility_outlined,
                     iconColor: IOSTheme.systemGreen,
                     label: 'Ko\'rgan reklamalar',
                     value: '${user.totalAdsWatched} ta',
+                    isDark: isDark,
                   ),
-                  Divider(height: 1, color: IOSTheme.separator, indent: 56),
+                  Divider(
+                    height: 1,
+                    color: isDark ? IOSTheme.darkSeparator : IOSTheme.separator,
+                    indent: 56,
+                  ),
                   _buildIOSInfoTile(
                     icon: Icons.attach_money_outlined,
                     iconColor: IOSTheme.systemOrange,
                     label: 'Jami ishlangan',
                     value: '${user.totalEarned.toStringAsFixed(0)} so\'m',
                     isLast: true,
+                    isDark: isDark,
                   ),
                 ],
               ),
@@ -223,7 +251,9 @@ class ProfileScreen extends ConsumerWidget {
                 margin: const EdgeInsets.all(16),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: IOSTheme.systemBackground,
+                  color: isDark
+                      ? IOSTheme.darkSecondarySystemBackground
+                      : IOSTheme.systemBackground,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
@@ -295,7 +325,9 @@ class ProfileScreen extends ConsumerWidget {
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: IOSTheme.systemBackground,
+                color: isDark
+                    ? IOSTheme.darkSecondarySystemBackground
+                    : IOSTheme.systemBackground,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -320,6 +352,7 @@ class ProfileScreen extends ConsumerWidget {
                       'Tungi rejim',
                       style: IOSTheme.body.copyWith(
                         fontWeight: FontWeight.w500,
+                        color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
                       ),
                     ),
                   ),
@@ -424,6 +457,7 @@ class ProfileScreen extends ConsumerWidget {
     required String value,
     bool isFirst = false,
     bool isLast = false,
+    bool isDark = false,
   }) {
     return ListTile(
       leading: Container(
@@ -436,13 +470,15 @@ class ProfileScreen extends ConsumerWidget {
       ),
       title: Text(
         label,
-        style: IOSTheme.subhead.copyWith(color: IOSTheme.secondaryLabel),
+        style: IOSTheme.subhead.copyWith(
+          color: isDark ? IOSTheme.darkSecondaryLabel : IOSTheme.secondaryLabel,
+        ),
       ),
       trailing: Text(
         value,
         style: IOSTheme.body.copyWith(
           fontWeight: FontWeight.w600,
-          color: IOSTheme.label,
+          color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
         ),
       ),
     );

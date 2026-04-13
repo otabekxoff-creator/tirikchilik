@@ -206,6 +206,13 @@ class _AdminScreenState extends State<AdminScreen>
         foregroundColor: isDark ? IOSTheme.darkLabel : IOSTheme.label,
         elevation: 0,
         scrolledUnderElevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           IconButton(
             icon: Icon(

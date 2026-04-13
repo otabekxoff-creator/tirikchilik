@@ -86,6 +86,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         foregroundColor: isDark ? IOSTheme.darkLabel : IOSTheme.label,
         elevation: 0,
         scrolledUnderElevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Container(
