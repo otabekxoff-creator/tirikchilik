@@ -7,7 +7,8 @@ plugins {
 
 android {
     namespace = "com.example.tirikchilik"
-    compileSdk = 35
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
