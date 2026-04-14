@@ -11,15 +11,73 @@ import 'routing/app_router.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize app
-  await AppInitializer.initialize();
+  try {
+    // Initialize app
+    await AppInitializer.initialize();
 
-  runApp(
-    ProviderScope(
-      overrides: [appProviderProvider.overrideWith((ref) => AppNotifier())],
-      child: const MyApp(),
-    ),
-  );
+    runApp(
+      ProviderScope(
+        overrides: [appProviderProvider.overrideWith((ref) => AppNotifier())],
+        child: const MyApp(),
+      ),
+    );
+  } catch (e, stack) {
+    // Show error if initialization fails
+    runApp(ErrorApp(error: e.toString(), stackTrace: stack.toString()));
+  }
+}
+
+// Error display widget for startup failures
+class ErrorApp extends StatelessWidget {
+  final String error;
+  final String stackTrace;
+
+  const ErrorApp({super.key, required this.error, required this.stackTrace});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 64),
+                const SizedBox(height: 16),
+                const Text(
+                  'Ishga tushirishda xatolik:',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Text(error, style: const TextStyle(fontSize: 14)),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Stack Trace:',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Expanded(
+                  flex: 2,
+                  child: SingleChildScrollView(
+                    child: Text(
+                      stackTrace,
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class MyApp extends ConsumerWidget {
