@@ -63,9 +63,6 @@ dependencies:
   hive_flutter: ^1.1.0
   connectivity_plus: ^6.1.0
   
-  # Analytics & Monitoring
-  sentry_flutter: ^8.12.0
-  
   # Device Info
   device_info_plus: ^10.1.2
   
