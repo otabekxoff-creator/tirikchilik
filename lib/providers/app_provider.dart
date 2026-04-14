@@ -99,38 +99,40 @@ class AppNotifier extends StateNotifier<AppState> {
   }) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final success = await _authService.register(
+      final user = await _authService.register(
         name,
         email,
         phone,
         password,
         referralCode: referralCode,
       );
-      if (!success) {
+      if (user == null) {
         state = state.copyWith(
           error: 'Bu email yoki telefon allaqachon ro\'yxatdan o\'tgan',
         );
       } else {
-        final user = await _authService.getCurrentUser();
-        if (referralCode != null && referralCode.isNotEmpty && user != null) {
+        final currentUser = await _authService.getCurrentUser();
+        if (referralCode != null &&
+            referralCode.isNotEmpty &&
+            currentUser != null) {
           final referrer = await _authService.getUserByReferralCode(
             referralCode,
           );
           if (referrer != null && referrer.id.isNotEmpty) {
             await _walletService.addBonus(
-              user.id,
-              1.0,
+              currentUser.id,
+              10000,
               'Referral bonus - $referralCode',
             );
             await _walletService.addBonus(
               referrer.id,
-              0.5,
-              'Referral bonus - ${referrer.name} ro\'yxatdan o\'tdi',
+              5000,
+              'Referral bonus - ${currentUser.name} ro\'yxatdan o\'tdi',
             );
           }
         }
-        if (user != null) {
-          final wallet = await _walletService.getWallet(user.id);
+        if (currentUser != null) {
+          final wallet = await _walletService.getWallet(currentUser.id);
           state = state.copyWith(currentUser: user, wallet: wallet);
         }
       }

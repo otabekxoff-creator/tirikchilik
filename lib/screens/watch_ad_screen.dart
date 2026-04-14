@@ -23,7 +23,7 @@ class _WatchAdScreenState extends ConsumerState<WatchAdScreen> {
   int _secondsRemaining = 0;
   int _totalDuration = 0;
   Timer? _timer;
-  Map<String, dynamic>? _currentAd;
+  AdModel? _currentAd;
   final AdService _adService = AdService();
   bool _isLoading = true;
 
@@ -37,11 +37,12 @@ class _WatchAdScreenState extends ConsumerState<WatchAdScreen> {
   }
 
   Future<void> _loadAd() async {
-    final customAds = await _adService.getAvailableAds(widget.level);
+    final userId = ref.read(appProviderProvider).currentUser?.id ?? 'guest';
+    final customAds = await _adService.getAvailableAds(userId);
 
     if (customAds.isNotEmpty) {
       _currentAd = customAds[DateTime.now().millisecond % customAds.length];
-      _totalDuration = _currentAd!['durationSeconds'] ?? 30;
+      _totalDuration = _currentAd!.durationSeconds;
     } else {
       _totalDuration = _getDefaultDuration();
     }
@@ -117,8 +118,7 @@ class _WatchAdScreenState extends ConsumerState<WatchAdScreen> {
     final provider = ref.watch(appProviderProvider);
     final double reward;
     if (_currentAd != null) {
-      final baseReward = (_currentAd!['reward'] ?? widget.level.reward)
-          .toDouble();
+      final baseReward = _currentAd!.level.reward;
       reward = provider.isPremium ? baseReward * 1.5 : baseReward;
     } else {
       reward = provider.isPremium
@@ -408,9 +408,9 @@ class _WatchAdScreenState extends ConsumerState<WatchAdScreen> {
   }
 
   Widget _buildAdView() {
-    final adTitle = _currentAd?['title'] ?? 'Reklama';
-    final adDescription = _currentAd?['description'] ?? '';
-    final adImageUrl = _currentAd?['imageUrl'];
+    final adTitle = 'Reklama ko\'rish';
+    final adDescription = 'Level: ${widget.level.label}';
+    final adImageUrl = null;
 
     return Container(
       margin: const EdgeInsets.all(20),

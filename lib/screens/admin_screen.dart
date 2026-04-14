@@ -29,7 +29,7 @@ class _AdminScreenState extends State<AdminScreen>
   List<dynamic> _allUsers = [];
   List<dynamic> _filteredUsers = [];
   List<dynamic> _wallets = [];
-  List<Map<String, dynamic>> _ads = [];
+  List<AdModel> _ads = [];
   bool _isLoading = true;
   String _error = '';
   String _searchQuery = '';
@@ -972,12 +972,9 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
-  Widget _buildAdCard(Map<String, dynamic> ad, bool isDark) {
-    final level = AdLevel.values.firstWhere(
-      (e) => e.toString() == 'AdLevel.${ad['level']}',
-      orElse: () => AdLevel.oddiy,
-    );
-    final isActive = ad['isActive'] ?? true;
+  Widget _buildAdCard(AdModel ad, bool isDark) {
+    final level = ad.level;
+    final isActive = !ad.isWatched;
 
     return Container(
       decoration: BoxDecoration(
@@ -1011,7 +1008,7 @@ class _AdminScreenState extends State<AdminScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        ad['title'] ?? 'Nomsiz reklama',
+                        'Reklama ${ad.id.substring(0, ad.id.length > 10 ? 10 : ad.id.length)}',
                         style: IOSTheme.headline.copyWith(
                           fontWeight: FontWeight.w600,
                           color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
@@ -1021,7 +1018,7 @@ class _AdminScreenState extends State<AdminScreen>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        ad['description'] ?? 'Tavsif yo\'q',
+                        'Level: ${level.label}',
                         style: IOSTheme.caption1.copyWith(
                           color: isDark
                               ? IOSTheme.darkSecondaryLabel
@@ -1062,7 +1059,7 @@ class _AdminScreenState extends State<AdminScreen>
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${ad['durationSeconds'] ?? 30}s',
+                            '${ad.durationSeconds}s',
                             style: IOSTheme.caption2.copyWith(
                               color: isDark
                                   ? IOSTheme.darkTertiaryLabel
@@ -1079,7 +1076,7 @@ class _AdminScreenState extends State<AdminScreen>
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${(ad['reward'] ?? level.reward).toStringAsFixed(0)}',
+                            level.reward.toStringAsFixed(0),
                             style: IOSTheme.caption2.copyWith(
                               color: isDark
                                   ? IOSTheme.darkTertiaryLabel
@@ -1096,7 +1093,7 @@ class _AdminScreenState extends State<AdminScreen>
                   children: [
                     Switch(
                       value: isActive,
-                      onChanged: (value) => _toggleAdStatus(ad['id']),
+                      onChanged: (value) => _toggleAdStatus(ad.id),
                       activeTrackColor: IOSTheme.systemGreen.withValues(
                         alpha: 0.5,
                       ),
@@ -1106,7 +1103,7 @@ class _AdminScreenState extends State<AdminScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         InkWell(
-                          onTap: () => _showEditAdDialog(ad),
+                          onTap: () => _showAdDetails(ad, isDark),
                           borderRadius: BorderRadius.circular(8),
                           child: Container(
                             padding: const EdgeInsets.all(6),
@@ -1118,7 +1115,7 @@ class _AdminScreenState extends State<AdminScreen>
                           ),
                         ),
                         InkWell(
-                          onTap: () => _deleteAd(ad['id']),
+                          onTap: () => _deleteAd(ad.id),
                           borderRadius: BorderRadius.circular(8),
                           child: Container(
                             padding: const EdgeInsets.all(6),
@@ -1143,13 +1140,13 @@ class _AdminScreenState extends State<AdminScreen>
 
   // MARK: - Ad Details
 
-  void _showAdDetails(Map<String, dynamic> ad, bool isDark) {
+  void _showAdDetails(AdModel ad, bool isDark) {
     HapticFeedback.mediumImpact();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          ad['title'] ?? 'Nomsiz reklama',
+          'Reklama ${ad.id.substring(0, 10)}',
           style: IOSTheme.title3.copyWith(
             color: isDark ? IOSTheme.darkLabel : IOSTheme.label,
           ),
@@ -1158,30 +1155,26 @@ class _AdminScreenState extends State<AdminScreen>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildDetailRow('Tavsif:', ad['description'] ?? 'N/A', isDark),
+            _buildDetailRow('Tavsif:', 'Level: ${ad.level.label}', isDark),
             _buildDetailRow(
               'Davomiyligi:',
-              '${ad['durationSeconds'] ?? 30} sekund',
+              '${ad.durationSeconds} sekund',
               isDark,
             ),
             _buildDetailRow(
               'Mukofot:',
-              '${(ad['reward'] ?? 0).toStringAsFixed(0)} so\'m',
+              '${ad.level.reward.toStringAsFixed(0)} so\'m',
               isDark,
             ),
             _buildDetailRow(
               'Holati:',
-              (ad['isActive'] ?? true) ? 'Faol ✅' : 'Nofaol ❌',
+              !ad.isWatched ? 'Faol ✅' : 'Nofaol ❌',
               isDark,
             ),
-            if (ad['imageUrl'] != null)
-              _buildDetailRow('Rasm:', ad['imageUrl'], isDark),
-            if (ad['createdAt'] != null)
+            if (ad.watchedAt != null)
               _buildDetailRow(
-                'Yaratilgan:',
-                DateFormat(
-                  'dd.MM.yyyy HH:mm',
-                ).format(DateTime.parse(ad['createdAt'])),
+                'Ko\'rilgan:',
+                DateFormat('dd.MM.yyyy HH:mm').format(ad.watchedAt!),
                 isDark,
               ),
           ],
@@ -1189,7 +1182,6 @@ class _AdminScreenState extends State<AdminScreen>
         actions: [
           TextButton(
             onPressed: () {
-              _showEditAdDialog(ad);
               Navigator.pop(context);
             },
             child: Text(
@@ -1293,11 +1285,6 @@ class _AdminScreenState extends State<AdminScreen>
   void _showAddAdDialog() {
     HapticFeedback.mediumImpact();
     _showAdDialog();
-  }
-
-  void _showEditAdDialog(Map<String, dynamic> ad) {
-    HapticFeedback.selectionClick();
-    _showAdDialog(ad: ad);
   }
 
   Widget _buildBulkActionsButton(bool isDark) {
@@ -1491,27 +1478,16 @@ class _AdminScreenState extends State<AdminScreen>
                     return;
                   }
 
-                  final adData = {
-                    'id':
-                        ad?['id'] ??
-                        'ad_${DateTime.now().millisecondsSinceEpoch}',
-                    'title': titleController.text.trim(),
-                    'description': descriptionController.text.trim(),
-                    'level': selectedLevel.toString().split('.').last,
-                    'durationSeconds':
+                  final adModel = AdModel(
+                    id: ad != null
+                        ? 'existing_ad_${DateTime.now().millisecondsSinceEpoch}'
+                        : 'ad_${DateTime.now().millisecondsSinceEpoch}',
+                    level: selectedLevel,
+                    durationSeconds:
                         int.tryParse(durationController.text) ?? 30,
-                    'reward':
-                        double.tryParse(rewardController.text) ??
-                        selectedLevel.reward,
-                    'imageUrl': imageUrlController.text.trim().isEmpty
-                        ? null
-                        : imageUrlController.text.trim(),
-                    'isActive': ad?['isActive'] ?? true,
-                    'createdAt':
-                        ad?['createdAt'] ?? DateTime.now().toIso8601String(),
-                  };
+                  );
 
-                  await _adStorageService.saveAd(adData);
+                  await _adStorageService.saveAd(adModel);
                   if (!context.mounted) return;
                   Navigator.pop(context);
                   _loadData();
