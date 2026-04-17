@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/app_provider.dart';
-import '../services/secure_storage_service.dart';
+import '../services/storage_service.dart';
 import '../utils/app_logger.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -24,11 +24,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _loadSettings() async {
-    final secureStorage = SecureStorageService();
-    final notifications = await secureStorage.read('notifications_enabled');
-    final darkMode = await secureStorage.read('dark_mode');
-    final biometric = await secureStorage.read('biometric_auth');
-    final language = await secureStorage.read('selected_language');
+    final storage = StorageService();
+    final notifications = await storage.read('notifications_enabled');
+    final darkMode = await storage.read('dark_mode');
+    final biometric = await storage.read('biometric_auth');
+    final language = await storage.read('selected_language');
 
     if (mounted) {
       setState(() {
@@ -41,8 +41,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _saveSetting(String key, String value) async {
-    final secureStorage = SecureStorageService();
-    await secureStorage.write(key, value);
+    final storage = StorageService();
+    await storage.write(key, value);
   }
 
   @override

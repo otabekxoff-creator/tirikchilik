@@ -2,18 +2,18 @@ import 'dart:convert';
 
 import '../models/ad_model.dart';
 import '../utils/app_logger.dart';
-import 'secure_storage_service.dart';
+import 'storage_service.dart';
 
 class AdStorageService {
   static final AdStorageService _instance = AdStorageService._internal();
   factory AdStorageService() => _instance;
   AdStorageService._internal();
 
-  final SecureStorageService _secureStorage = SecureStorageService();
+  final StorageService _storage = StorageService();
 
   Future<List<AdModel>> getAllAds() async {
     try {
-      final adsData = await _secureStorage.read('all_ads');
+      final adsData = await _storage.read('all_ads');
       if (adsData != null) {
         final List<dynamic> decoded = jsonDecode(adsData);
         return decoded.map((e) => AdModel.fromJson(e)).toList();
@@ -28,7 +28,7 @@ class AdStorageService {
   Future<void> saveAds(List<AdModel> ads) async {
     try {
       final encoded = jsonEncode(ads.map((e) => e.toJson()).toList());
-      await _secureStorage.write('all_ads', encoded);
+      await _storage.write('all_ads', encoded);
     } catch (e, st) {
       AppLogger.error('Save ads error', e, st);
     }

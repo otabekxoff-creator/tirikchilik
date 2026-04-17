@@ -6,25 +6,25 @@ import 'package:crypto/crypto.dart';
 
 import '../models/user_model.dart';
 import '../utils/app_logger.dart';
-import 'secure_storage_service.dart';
+import 'storage_service.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
   factory AuthService() => _instance;
   AuthService._internal();
 
-  final SecureStorageService _secureStorage = SecureStorageService();
+  final StorageService _storage = StorageService();
 
   UserModel? _currentUser;
   UserModel? get currentUser => _currentUser;
 
   Future<bool> isLoggedIn() async {
-    final token = await _secureStorage.read('auth_token');
+    final token = await _storage.read('auth_token');
     return token != null && token.isNotEmpty;
   }
 
   Future<String?> getToken() async {
-    return await _secureStorage.read('auth_token');
+    return await _storage.read('auth_token');
   }
 
   Future<UserModel?> login(String email, String password) async {
@@ -50,7 +50,7 @@ class AuthService {
 
       _currentUser = user;
       await _saveUserToStorage(user);
-      await _secureStorage.write('auth_token', _generateToken(user.id));
+      await _storage.write('auth_token', _generateToken(user.id));
 
       return user;
     } catch (e) {
@@ -79,7 +79,7 @@ class AuthService {
 
         _currentUser = user;
         await _saveUserToStorage(user);
-        await _secureStorage.write('auth_token', _generateToken(user.id));
+        await _storage.write('auth_token', _generateToken(user.id));
 
         return user;
       }
@@ -116,7 +116,7 @@ class AuthService {
 
       _currentUser = user;
       await _saveUserToStorage(user);
-      await _secureStorage.write('auth_token', _generateToken(user.id));
+      await _storage.write('auth_token', _generateToken(user.id));
 
       return user;
     } catch (e) {
@@ -127,14 +127,14 @@ class AuthService {
 
   Future<void> logout() async {
     _currentUser = null;
-    await _secureStorage.delete('auth_token');
-    await _secureStorage.delete('user_data');
+    await _storage.delete('auth_token');
+    await _storage.delete('user_data');
   }
 
   Future<UserModel?> getCurrentUser() async {
     if (_currentUser != null) return _currentUser;
 
-    final userData = await _secureStorage.read('user_data');
+    final userData = await _storage.read('user_data');
     if (userData != null) {
       try {
         _currentUser = UserModel.fromJson(jsonDecode(userData));
@@ -147,7 +147,7 @@ class AuthService {
   }
 
   Future<void> _saveUserToStorage(UserModel user) async {
-    await _secureStorage.write('user_data', jsonEncode(user.toJson()));
+    await _storage.write('user_data', jsonEncode(user.toJson()));
   }
 
   Future<UserModel?> getUserByReferralCode(String referralCode) async {
@@ -167,8 +167,8 @@ class AuthService {
 
   Future<void> deleteUser(String userId) async {
     // Stub implementation - would delete from backend in real app
-    await _secureStorage.delete('user_data');
-    await _secureStorage.delete('auth_token');
+    await _storage.delete('user_data');
+    await _storage.delete('auth_token');
   }
 
   String _generateToken(String userId) {

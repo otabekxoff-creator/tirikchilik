@@ -3,18 +3,18 @@ import 'dart:convert';
 
 import '../models/wallet_model.dart';
 import '../utils/app_logger.dart';
-import 'secure_storage_service.dart';
+import 'storage_service.dart';
 
 class WalletService {
   static final WalletService _instance = WalletService._internal();
   factory WalletService() => _instance;
   WalletService._internal();
 
-  final SecureStorageService _secureStorage = SecureStorageService();
+  final StorageService _storage = StorageService();
 
   Future<WalletModel> getWallet(String userId) async {
     try {
-      final walletData = await _secureStorage.read('wallet_$userId');
+      final walletData = await _storage.read('wallet_$userId');
       if (walletData != null) {
         return WalletModel.fromJson(jsonDecode(walletData));
       }
@@ -98,7 +98,7 @@ class WalletService {
   }
 
   Future<void> _saveWallet(WalletModel wallet) async {
-    await _secureStorage.write(
+    await _storage.write(
       'wallet_${wallet.userId}',
       jsonEncode(wallet.toJson()),
     );
