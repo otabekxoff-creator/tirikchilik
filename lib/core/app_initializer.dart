@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart' as logging;
 import '../utils/app_logger.dart';
 import '../theme/ios_theme.dart';
+import '../services/shared_preferences_service.dart';
 
 class AppInitializer {
   static Future<void> initialize() async {
@@ -12,6 +13,9 @@ class AppInitializer {
         level: kDebugMode ? logging.Level.ALL : logging.Level.INFO,
       );
       AppLogger.info('AppInitializer starting...');
+
+      // Initialize SharedPreferences
+      await SharedPreferencesService.instance.initialize();
 
       // Set preferred orientations (minimal initialization)
       await SystemChrome.setPreferredOrientations([

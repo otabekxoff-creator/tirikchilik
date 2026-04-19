@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'providers/language_provider.dart';
 import 'providers/app_provider.dart';
 import 'core/app_initializer.dart';
@@ -12,6 +13,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
+    // Load environment variables
+    await dotenv.load(fileName: 'assets/.env');
+
     // Initialize app
     await AppInitializer.initialize();
 

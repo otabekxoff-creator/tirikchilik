@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../models/user_model.dart';
 import '../utils/app_logger.dart';
 import 'storage_service.dart';
+import 'secure_storage_service.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
@@ -14,12 +16,13 @@ class AuthService {
   AuthService._internal();
 
   final StorageService _storage = StorageService();
+  final SecureStorageService _secureStorage = SecureStorageService();
 
   UserModel? _currentUser;
   UserModel? get currentUser => _currentUser;
 
   Future<bool> isLoggedIn() async {
-    final token = await _storage.read('auth_token');
+    final token = await _secureStorage.read('auth_token');
     return token != null && token.isNotEmpty;
   }
 
@@ -50,7 +53,7 @@ class AuthService {
 
       _currentUser = user;
       await _saveUserToStorage(user);
-      await _storage.write('auth_token', _generateToken(user.id));
+      await _secureStorage.write('auth_token', _generateToken(user.id));
 
       return user;
     } catch (e) {
@@ -63,7 +66,10 @@ class AuthService {
     try {
       await Future.delayed(const Duration(seconds: 1));
 
-      if (login == 'admin' && password == 'admin123') {
+      final adminLogin = dotenv.env['ADMIN_LOGIN'] ?? 'admin';
+      final adminPassword = dotenv.env['ADMIN_PASSWORD'] ?? 'admin123';
+
+      if (login == adminLogin && password == adminPassword) {
         final user = UserModel(
           id: 'admin_001',
           name: 'Admin',
@@ -127,14 +133,14 @@ class AuthService {
 
   Future<void> logout() async {
     _currentUser = null;
-    await _storage.delete('auth_token');
-    await _storage.delete('user_data');
+    await _secureStorage.delete('auth_token');
+    await _secureStorage.delete('user_data');
   }
 
   Future<UserModel?> getCurrentUser() async {
     if (_currentUser != null) return _currentUser;
 
-    final userData = await _storage.read('user_data');
+    final userData = await _secureStorage.read('user_data');
     if (userData != null) {
       try {
         _currentUser = UserModel.fromJson(jsonDecode(userData));
@@ -147,7 +153,7 @@ class AuthService {
   }
 
   Future<void> _saveUserToStorage(UserModel user) async {
-    await _storage.write('user_data', jsonEncode(user.toJson()));
+    await _secureStorage.write('user_data', jsonEncode(user.toJson()));
   }
 
   Future<UserModel?> getUserByReferralCode(String referralCode) async {
@@ -173,7 +179,9 @@ class AuthService {
 
   String _generateToken(String userId) {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final data = utf8.encode('$userId:$timestamp:secret_key');
+    final secretKey =
+        dotenv.env['SECRET_KEY'] ?? 'default_secret_key_change_me';
+    final data = utf8.encode('$userId:$timestamp:$secretKey');
     final hash = sha256.convert(data);
     return hash.toString();
   }
